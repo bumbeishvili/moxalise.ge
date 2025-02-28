@@ -33,10 +33,11 @@ function initializeMap() {
         topographic: {
           type: 'raster',
           // Using Esri's World Topographic Map which has good English labels globally
-          tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'],
+          tiles: [
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+          ],
           tileSize: 256,
-          attribution:
-            '© <a href="https://www.esri.com/">Esri</a>',
+          attribution: '© <a href="https://www.esri.com/">Esri</a>',
         },
         /* Alternative if Esri doesn't meet your needs:
         topographic: {
@@ -86,7 +87,7 @@ function initializeMap() {
   map.addControl(
     new maplibregl.AttributionControl({
       compact: true,
-      customAttribution: '© <a href="https://moxalise.ge">moxalise.ge</a>'
+      customAttribution: '© <a href="https://moxalise.ge">moxalise.ge</a>',
     })
   );
 
@@ -344,6 +345,56 @@ function setupMarkers() {
       const shadowEl = document.createElement('div');
       shadowEl.className = 'map-pin-shadow';
       el.appendChild(shadowEl);
+
+      // Add age badge for pending requests
+      if (status === 'მომლოდინე') {
+        // Get registration date from the item - only use დამატების თარიღი field
+        const regDateStr = item['დამატების თარიღი'];
+
+        // Calculate days since registration
+        const daysSinceRegistration = calculateDaysPassed(regDateStr);
+
+        // Get last update date if available
+        const updatesStr = item['განახლებები'];
+        const lastUpdateDate = getLastUpdateDate(updatesStr);
+
+        // Calculate days since last interaction
+        let daysSinceLastInteraction = null;
+        if (lastUpdateDate) {
+          daysSinceLastInteraction = calculateDaysPassed(lastUpdateDate);
+        }
+
+        // Use the most recent date for badge display
+        let daysPassed = daysSinceRegistration;
+        if (daysSinceLastInteraction !== null && daysSinceLastInteraction < daysSinceRegistration) {
+          daysPassed = daysSinceLastInteraction;
+        }
+
+        // Only add badge if we have valid days
+        if (daysPassed > 0) {
+          // Create badge element
+          const badge = document.createElement('div');
+          badge.className = 'age-badge';
+
+          // Format the badge text: show actual number for 1-9, show "9+" for >9
+          badge.textContent = daysPassed > 9 ? '9+' : daysPassed;
+
+          // Set badge color based on age
+          if (daysPassed <= 3) {
+            badge.style.backgroundColor = '#ffeb3b'; // Yellow for 1-3 days
+            badge.style.color = '#333'; // Darker text for visibility
+          } else if (daysPassed <= 7) {
+            badge.style.backgroundColor = '#ff9800'; // Orange for 4-7 days
+          } else {
+            badge.style.backgroundColor = '#8B0000'; // Dark burgundy red for >7 days (was #e74c3c)
+          }
+
+          // Append to pin element instead of container
+          el.appendChild(badge);
+          el.classList.add('has-badge'); // Add class to pin element
+        }
+        // No else clause - don't add a badge if no valid days
+      }
 
       // Only apply offset if we have more than one item at this location
       let offsetLon = item.lon;
@@ -790,8 +841,7 @@ function toggleMapStyle(style) {
         type: 'raster',
         tiles: ['https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],
         tileSize: 256,
-        attribution:
-          '© <a href="https://carto.com">CARTO</a> & <a href="https://osm.org">OSM</a>',
+        attribution: '© <a href="https://carto.com">CARTO</a> & <a href="https://osm.org">OSM</a>',
       },
     },
     layers: [
@@ -814,8 +864,7 @@ function toggleMapStyle(style) {
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         ],
         tileSize: 256,
-        attribution:
-          '© <a href="https://www.esri.com/">Esri</a>',
+        attribution: '© <a href="https://www.esri.com/">Esri</a>',
       },
     },
     layers: [
@@ -836,10 +885,11 @@ function toggleMapStyle(style) {
       topographic: {
         type: 'raster',
         // Using Esri's World Topographic Map which has good English labels globally
-        tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'],
+        tiles: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+        ],
         tileSize: 256,
-        attribution:
-          '© <a href="https://www.esri.com/">Esri</a>',
+        attribution: '© <a href="https://www.esri.com/">Esri</a>',
       },
     },
     layers: [
@@ -986,7 +1036,7 @@ function toggleSatellite() {
 // Check if the map is ready with all necessary layers and sources
 function isMapReady(map) {
   if (!map) {
-    console.log('Map is not defined');
+    console.error('Map is not defined');
     return false;
   }
 
@@ -1002,14 +1052,14 @@ function isMapReady(map) {
     const isReady = hasPolygonLayer && hasOutlineLayer && hasSource && hasData;
 
     if (!isReady) {
-      console.log(
+      console.error(
         `Map not ready: layers=${hasPolygonLayer && hasOutlineLayer}, source=${!!hasSource}, data=${!!hasData}`
       );
     }
 
     return isReady;
   } catch (error) {
-    console.log(`Error checking map readiness: ${error.message}`);
+    console.error(`Error checking map readiness: ${error.message}`);
     return false;
   }
 }
@@ -1025,13 +1075,13 @@ function ensureMapLayers(map) {
 
     // If layers don't exist, try to add them
     if (!hasPolygonLayer || !hasOutlineLayer) {
-      console.log('Required layers not found, attempting to add them');
+      console.error('Required layers not found, attempting to add them');
 
       // Check if the source exists
       const hasSource = map.getSource('locations');
 
       if (!hasSource) {
-        console.log("Source 'locations' not found, attempting to add it");
+        console.error("Source 'locations' not found, attempting to add it");
 
         // Create features
         const features = updateFeatures(true);
@@ -1110,10 +1160,16 @@ function createTooltipHTML(feature, instanceId) {
   // Add ID at the top of the tooltip using the CSS classes
   html += `<p class="id-field"><span class="id-label">ID:</span> <span class="id-value">${data.id || ''}</span></p>`;
 
+  // Add waiting days information for pending requests
+  const status = data['სტატუსი\n(მომლოდინე/ დასრულებულია)'];
+  if (status === 'მომლოდინე' && data._daysPassed > 0) {
+    html += `<p class="waiting-days">ლოდინის დღეები: ${data._daysPassed}</p>`;
+  }
+
   // Get all keys except internal ones and those containing 'დისკუსია'
   const keys = Object.keys(data).filter(
     key =>
-      !['id', 'fillColor', 'strokeColor', 'lat', 'lon', 'inGroup'].includes(key) &&
+      !['id', 'fillColor', 'strokeColor', 'lat', 'lon', 'inGroup', '_daysPassed'].includes(key) &&
       !key.includes('დისკუსია')
   );
 
@@ -1152,7 +1208,7 @@ function createTooltipHTML(feature, instanceId) {
   }
 
   // Close the scrollable div
-  html += `</div>`;
+  html += '</div>';
 
   // Add directions link if lat and lon are available
   if (data.lat && data.lon) {
@@ -1163,7 +1219,7 @@ function createTooltipHTML(feature, instanceId) {
         </div>`;
   }
 
-  html += `</div>`;
+  html += '</div>';
   return html;
 }
 

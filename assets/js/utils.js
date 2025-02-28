@@ -564,3 +564,142 @@ function ensureMapLayers(map) {
     return false;
   }
 }
+
+/**
+ * Calculate days passed since a given date string.
+ * Handles date strings in format like "2/27/2025 15:22:00" or other standard formats.
+ * @param {string|Date} dateString - The date string to calculate days from
+ * @returns {number} - Number of days passed (0 if invalid date)
+ */
+function calculateDaysPassed(dateString) {
+  // Check if dateString is valid
+  if (!dateString || (typeof dateString === 'string' && dateString.trim() === '')) {
+    return null;
+  }
+
+  try {
+    // Remove debug logging
+    // Try to parse the date
+    let date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.error(`Invalid date: "${dateString}"`);
+
+      // Try manual parsing for format like "2/27/2025 15:22:00"
+      console.error('Standard date parsing failed, trying manual parsing');
+
+      // Extract components from the date string
+      const parts = dateString.split(' ');
+      if (parts.length >= 1) {
+        const datePart = parts[0];
+        const dateComponents = datePart.split('/');
+
+        if (dateComponents.length === 3) {
+          const month = parseInt(dateComponents[0], 10) - 1; // Months are 0-indexed in JS
+          const day = parseInt(dateComponents[1], 10);
+          const year = parseInt(dateComponents[2], 10);
+
+          // Handle time part if available
+          let hours = 0,
+            minutes = 0,
+            seconds = 0;
+          if (parts.length > 1) {
+            const timePart = parts[1];
+            const timeComponents = timePart.split(':');
+
+            if (timeComponents.length >= 2) {
+              hours = parseInt(timeComponents[0], 10);
+              minutes = parseInt(timeComponents[1], 10);
+
+              if (timeComponents.length > 2) {
+                seconds = parseInt(timeComponents[2], 10);
+              }
+            }
+          }
+
+          // Create date from components
+          date = new Date(year, month, day, hours, minutes, seconds);
+
+          // Check if the manually parsed date is valid
+          if (isNaN(date.getTime())) {
+            console.error(`Invalid date after all parsing attempts: "${dateString}"`);
+            return null;
+          }
+        } else {
+          console.error(`Invalid date format: "${dateString}"`);
+          return null;
+        }
+      }
+    }
+
+    // Remove debug logging
+    // Calculate days passed
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    // Remove debug logging
+    return diffDays;
+  } catch (error) {
+    console.error(`Error calculating days passed: ${error.message}`);
+    return null;
+  }
+}
+
+/**
+ * Extract the date from the last update in the განახლებები field
+ * Format example: "27/02 22:45: 501441919. @ნათია ქურციკიძე: ..."
+ * @param {string} updatesString - The განახლებები field content
+ * @returns {Date|null} - Date object of the last update or null if no updates
+ */
+function getLastUpdateDate(updatesString) {
+  if (!updatesString || typeof updatesString !== 'string' || updatesString.trim() === '') {
+    return null;
+  }
+
+  try {
+    // Split by newlines to get individual updates
+    const updates = updatesString.split('\n').filter(update => update.trim() !== '');
+
+    // If no updates, return null
+    if (updates.length === 0) {
+      return null;
+    }
+
+    // Get the last update (most recent)
+    const lastUpdate = updates[updates.length - 1].trim();
+
+    // Extract the date part, accounting for leading dash (expected format: "- DD/MM HH:MM: ...")
+    // This regex matches: optional dash, optional whitespace, then the date pattern
+    const dateMatch = lastUpdate.match(/^\s*-?\s*(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{1,2})/);
+
+    if (!dateMatch) {
+      console.error(`Could not extract date from update: "${lastUpdate}"`);
+      return null;
+    }
+
+    // Extract date components
+    const day = parseInt(dateMatch[1], 10);
+    const month = parseInt(dateMatch[2], 10) - 1; // Months are 0-indexed in JS
+    const hours = parseInt(dateMatch[3], 10);
+    const minutes = parseInt(dateMatch[4], 10);
+
+    // Use current year
+    const currentYear = new Date().getFullYear();
+
+    // Create date object
+    const date = new Date(currentYear, month, day, hours, minutes);
+
+    // Validate the date
+    if (isNaN(date.getTime())) {
+      console.error(`Invalid date created from update: "${lastUpdate}"`);
+      return null;
+    }
+
+    return date;
+  } catch (error) {
+    console.error(`Error extracting date from updates: ${error.message}`);
+    return null;
+  }
+}

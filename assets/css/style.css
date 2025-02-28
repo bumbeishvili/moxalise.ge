@@ -768,6 +768,12 @@ a:hover {
   transform: translate(-50%, -50%);
 }
 
+/* Hide the white dot when a badge is present */
+.map-pin-container:has(.age-badge) .map-pin::after,
+.map-pin.has-badge::after {
+  display: none;
+}
+
 .map-pin-container {
   width: 35px;
   height: 45px;
@@ -829,7 +835,7 @@ a:hover {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
   z-index: 100;
   font-size: 14px;
-  max-width: 220px;
+  max-width: 280px;
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
@@ -1516,7 +1522,7 @@ a:hover {
   }
 }
 
-.modal.active~.mobile-sidebar-button {
+.modal.active ~ .mobile-sidebar-button {
   display: none !important;
 }
 
@@ -1958,6 +1964,95 @@ a:hover {
   background: #555;
 }
 
+/* Add styles for age badges */
+.age-badge {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #ff9800;
+  color: white;
+  font-size: 7.5px;
+  font-weight: bold;
+  box-shadow: none; /* Remove shadow */
+  border: none;
+  margin: 0;
+  padding: 0;
+  transform: translate(-50%, -50%);
+}
+
+/* Position for pin badges - place inside the pin element */
+.map-pin .age-badge {
+  pointer-events: none; /* Keep this to ensure clicks pass through to the pin */
+  box-sizing: border-box; /* Ensure padding and border are included in dimensions */
+  z-index: 100; /* Keep high z-index to ensure visibility */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg) !important; /* Counter-rotate to keep badge upright */
+}
+
+/* Position for card badges */
+.card .age-badge {
+  top: 5px;
+  right: 5px;
+}
+
+/* Remove pulsing animation and just keep a static badge */
+.age-badge.pulsing {
+  /* No animation, just a static badge */
+  /* Note: The pulsing class is still added in JS but has no visual effect */
+}
+
+.waiting-days {
+  font-size: 0.85em;
+  color: #e74c3c;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Legend badge */
+.legend-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ff9800;
+  margin-right: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Legend section title */
+.legend-section-title {
+  font-weight: bold;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+}
+
+/* Legend explanation */
+.legend-explanation {
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .map-pin .age-badge {
+    /* Keep the same positioning on mobile */
+  }
+}
+
 /* Styles for map attribution to prevent overlapping */
 .maplibregl-ctrl-attrib {
   font-size: 10px !important;
@@ -2005,7 +2100,6 @@ a:hover {
 
 /* Fix for mobile view */
 @media (max-width: 768px) {
-
   .maplibregl-ctrl-bottom-left,
   .maplibregl-ctrl-bottom-right {
     bottom: 125px !important;
