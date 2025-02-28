@@ -330,7 +330,6 @@
     </div>
   </div>
   <button class="legend-toggle" onclick="toggleLegend()">ლეგენდა</button>
-
   <div id="sidebar">
     <a href="https://github.com/bumbeishvili/moxalise.ge" target="_blank" class="github-icon-button">
       <svg viewBox="0 0 24 24" width="24" height="24">
@@ -371,7 +370,7 @@
     <a href="https://t.me/guria_sos" target="_blank" class="telegram-link"> Telegram ჯგუფი </a>
     <div id="cards-container"></div>
   </div>
-  <button class="toggle-panel" onclick="toggleTabs()">მონაცემების პანელი</button>
+  <button id="toogleTabs1" class="toggle-panel" onclick="toggleTabs()">მონაცემების პანელი</button>
   <button class="location-button" onclick="console.log('Location button clicked'); showMyLocation();">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -395,6 +394,7 @@
     <div class="map-style-option active" data-style="topo" onclick="toggleMapStyle('topo')">ტოპო</div>
     <div class="map-style-option" data-style="satellite" onclick="toggleMapStyle('satellite')">სატ</div>
   </div>
+
   <div class="tabs-panel" id="tabs-panel">
     <div class="tabs-header">
       <div>

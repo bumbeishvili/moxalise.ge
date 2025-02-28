@@ -545,6 +545,7 @@ a:hover {
   }
 }
 
+
 .sidebar-title {
   font-size: 18px;
   font-weight: bold;
@@ -874,8 +875,8 @@ a:hover {
 
 .legend-toggle {
   position: absolute;
-  bottom: 30px;
-  left: 10px;
+  bottom: 70px;
+  left: 20px;
   background: white;
   color: #333;
   border: none;
@@ -948,7 +949,7 @@ a:hover {
   border-radius: 18px;
   /* Half of width/height */
   cursor: pointer;
-  z-index: 1001;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -981,7 +982,7 @@ a:hover {
   display: flex;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  z-index: 1001;
+  z-index: 10;
   border: 1px solid #ddd;
   max-width: 190px;
   /* Increased from 150px to give more room */
@@ -1696,7 +1697,7 @@ a:hover {
   position: fixed;
   right: 510px;
   top: 10px;
-  z-index: 2000;
+  z-index: 10;
   background-color: #3498db;
   color: white;
   font-weight: bold;
