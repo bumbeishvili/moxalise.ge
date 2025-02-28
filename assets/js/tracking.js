@@ -105,15 +105,6 @@ document.addEventListener('DOMContentLoaded', function () {
   if (savedPhone && lastLocation) {
     lastPhoneNumber = savedPhone;
 
-    // Show the stop button
-    const stopButton = document.querySelector('.stop-location-button');
-    if (stopButton) {
-      console.log('Found stop button, setting display to flex');
-      stopButton.style.display = 'flex';
-    } else {
-      console.error('Stop location button not found in the DOM!');
-    }
-
     // Place marker on the map if data exists
     try {
       const locationData = JSON.parse(lastLocation);
@@ -260,36 +251,7 @@ function autoStartLocationSharing() {
             );
             console.log('Auto-start watchPosition set up with ID:', watchPositionId);
 
-            // Show the stop button
-            const stopButton = document.querySelector('.stop-location-button');
-            if (stopButton) {
-              stopButton.style.display = 'block';
-            } else {
-              console.error('stop-location-button not found when trying to show it');
-            }
-
-            // Show a brief notification to the user that tracking has started
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-              position: fixed;
-              bottom: 20px;
-              left: 50%;
-              transform: translateX(-50%);
-              background-color: rgba(0, 0, 0, 0.8);
-              color: white;
-              padding: 10px 20px;
-              border-radius: 8px;
-              z-index: 9999;
-              transition: opacity 0.5s;
-            `;
-            notification.textContent = 'ლოკაციის გაზიარება ავტომატურად დაიწყო';
-            document.body.appendChild(notification);
-
-            // Remove notification after 3 seconds
-            setTimeout(() => {
-              notification.style.opacity = '0';
-              setTimeout(() => notification.remove(), 500);
-            }, 3000);
+            // Display a notification to user that tracking is active
 
           } catch (error) {
             console.error('Error in auto-start location tracking:', error);
@@ -533,12 +495,12 @@ function startLocationSharing() {
             }
 
             // Show the stop button
-            const stopButton = document.querySelector('.stop-location-button');
-            if (stopButton) {
-              stopButton.style.display = 'block';
-            } else {
-              console.error('stop-location-button not found when trying to show it');
-            }
+            // const stopButton = document.querySelector('.stop-location-button');
+            // if (stopButton) {
+            //   stopButton.style.display = 'block';
+            // } else {
+            //   console.error('stop-location-button not found when trying to show it');
+            // }
 
             // Show status message
             const statusMsg = document.getElementById('location-status-message');
@@ -754,10 +716,10 @@ function requestAndShareLocation() {
           locationUpdateInterval = setInterval(sendLocationToServer, 5 * 60 * 1000);
 
           // Show the stop button
-          const stopButton = document.querySelector('.stop-location-button');
-          if (stopButton) {
-            stopButton.style.display = 'flex';
-          }
+          // const stopButton = document.querySelector('.stop-location-button');
+          // if (stopButton) {
+          //   stopButton.style.display = 'flex';
+          // }
 
           // Show feedback to user in the modal instead of alert
           const statusMessage = document.getElementById('location-status-message');
@@ -984,12 +946,12 @@ function processAndSendPosition(position) {
       console.log('API response:', data);
 
       // Show the stop sharing button
-      const stopButton = document.querySelector('.stop-location-button');
-      if (stopButton) {
-        stopButton.style.display = 'block';
-      } else {
-        console.error('stop-location-button not found when trying to show it');
-      }
+      // const stopButton = document.querySelector('.stop-location-button');
+      // if (stopButton) {
+      //   stopButton.style.display = 'block';
+      // } else {
+      //   console.error('stop-location-button not found when trying to show it');
+      // }
     })
     .catch(error => {
       console.error('Location update failed:', error);
@@ -1062,7 +1024,9 @@ function processAndSendPosition(position) {
 }
 
 /**
- * Stops sharing location
+ * Stops the location sharing process
+ * Note: The stop button has been removed from the UI, but this function
+ * is still needed for internal use to stop tracking.
  */
 function stopLocationSharing() {
   console.log('stopLocationSharing called');
@@ -1082,12 +1046,12 @@ function stopLocationSharing() {
   }
 
   // Hide the stop button
-  const stopButton = document.querySelector('.stop-location-button');
-  if (stopButton) {
-    stopButton.style.display = 'none';
-  } else {
-    console.error('stop-location-button not found when trying to hide it');
-  }
+  // const stopButton = document.querySelector('.stop-location-button');
+  // if (stopButton) {
+  //   stopButton.style.display = 'none';
+  // } else {
+  //   console.error('stop-location-button not found when trying to hide it');
+  // }
 
   alert('ლოკაციის გაზიარება შეჩერებულია');
 } 

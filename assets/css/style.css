@@ -1029,8 +1029,8 @@ a:hover {
   }
 
   .map-style-toggle {
-    bottom: 70px;
-    left: 10px;
+    bottom: 25px;
+    left: calc(100vw - 150px);
     font-size: 11px;
     /* Slightly smaller font */
     max-width: 140px;
@@ -2001,13 +2001,13 @@ a:hover {
 /* Make attribution cleaner on mobile */
 @media (max-width: 768px) {
   .maplibregl-ctrl-attrib {
-    font-size: 8px !important;
-    max-width: 200px !important;
+    display: none !important;
+    /* Hide attributions on mobile */
   }
 
   .maplibregl-ctrl-attrib-inner {
-    display: flex !important;
-    flex-direction: column !important;
+    display: none !important;
+    /* Hide attributions inner content on mobile */
   }
 }
 
@@ -2178,7 +2178,7 @@ a:hover {
   animation: pulse-green 2s infinite;
 }
 
-/* New styles for the stop location sharing button */
+/* New styles for the stop location sharing button - REMOVED AS REQUESTED
 .stop-location-button {
   position: fixed;
   bottom: 140px;
@@ -2203,6 +2203,7 @@ a:hover {
   background-color: #c0392b;
   transform: scale(1.05);
 }
+*/
 
 @keyframes modalFadeIn {
   from {
