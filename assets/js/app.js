@@ -7,6 +7,7 @@ let customDropdowns = {};
 let currentSearchText = '';
 let tippyInstances = {};
 let isDataLoading = true; // Track loading state
+let volunteerData = []; // Add volunteer data global variable
 
 // Debug console logs for location functionality
 console.log('app.js loaded');
@@ -189,11 +190,65 @@ function loadData() {
     });
   };
 
+  // New function to load volunteer location data
+  const loadVolunteerData = () => {
+    return new Promise((resolve, reject) => {
+      console.log('Loading volunteer location data from API');
+
+      // API endpoint for volunteer locations
+      const apiUrl = 'https://moxalise-api-vk3ygvyuia-ey.a.run.app/api/location/';
+
+      // First try using fetch API
+      fetch(apiUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`API responded with status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Successfully loaded volunteer location data from API, entries:', data.length);
+          resolve(data);
+        })
+        .catch(error => {
+          console.error('Error loading volunteer location data from API:', error);
+
+          // Try alternative loading method - Google Sheets CSV as fallback
+          const fallbackUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfK0UcHgAiwmJwTSWe2dxyIwzLFtS2150qbKVVti1uVfgDhwID3Ec6NLRrvX4AlABpxneejy1-lgTF/pub?gid=88234433&single=true&output=csv';
+          console.log('Attempting to load from fallback CSV:', fallbackUrl);
+
+          d3.csv(fallbackUrl)
+            .then(data => {
+              console.log('Successfully loaded volunteer location data from fallback CSV, entries:', data.length);
+              resolve(data);
+            })
+            .catch(fallbackError => {
+              console.error('Error loading volunteer location data from fallback CSV:', fallbackError);
+
+              // As a last resort, try loading the local CSV file
+              loadDataWithXHR('data/volunteer_locations.csv')
+                .then(localData => {
+                  console.log('Successfully loaded volunteer location data from local CSV, entries:', localData.length);
+                  resolve(localData);
+                })
+                .catch(localError => {
+                  console.warn('All volunteer data loading methods failed, using empty array:', localError);
+                  resolve([]);  // Still resolve with empty array as ultimate fallback
+                });
+            });
+        });
+    });
+  };
+
+  // Expose the function to the global scope
+  window.loadVolunteerData = loadVolunteerData;
+
   // Attempt main loading process
-  Promise.all([loadMainData(), loadVillagesData()])
-    .then(([data, villages]) => {
+  Promise.all([loadMainData(), loadVillagesData(), loadVolunteerData()])
+    .then(([data, villages, volunteers]) => {
       console.log('All data loaded successfully');
       processData(data, villages);
+      processVolunteerData(volunteers);
       initializeFilters(sampleData);
       createSidebarCards();
       initializeMap();
@@ -241,6 +296,63 @@ function loadData() {
         console.error('Failed to initialize map with empty data:', mapError);
       }
     });
+}
+
+// Function to process volunteer location data
+function processVolunteerData(data) {
+  if (!data || !data.length) {
+    console.log('No volunteer data to process');
+    volunteerData = [];
+    return;
+  }
+
+  console.log('Processing volunteer location data');
+
+  // Process each volunteer location entry
+  volunteerData = data.map(entry => {
+    // Handle both API JSON format and CSV format
+    // API format has data directly in the expected format
+    // CSV format has strings that need to be parsed
+
+    // Parse timestamp to Date object (handle both string and Date object)
+    let timestamp;
+    if (typeof entry.timestamp === 'string') {
+      timestamp = new Date(entry.timestamp);
+    } else if (entry.timestamp instanceof Date) {
+      timestamp = entry.timestamp;
+    } else if (entry.created_at) { // API might use different field name
+      timestamp = new Date(entry.created_at);
+    } else {
+      timestamp = new Date(); // Fallback to current date if no timestamp
+    }
+
+    return {
+      timestamp: timestamp,
+      lat: parseFloat(entry.lat || entry.latitude || 0),
+      lon: parseFloat(entry.lon || entry.longitude || 0),
+      accuracy: parseFloat(entry.accuracy || 0),
+      altitude: parseFloat(entry.altitude || 0),
+      altitude_accuracy: parseFloat(entry.altitude_accuracy || 0),
+      heading: parseFloat(entry.heading || 0),
+      speed: parseFloat(entry.speed || 0),
+      phone_number: entry.phone_number || entry.phoneNumber || '',
+      message: entry.message || '',
+      user_agent: entry.user_agent || entry.userAgent || '',
+      ip_hash: entry.ip_hash || entry.ipHash || ''
+    };
+  });
+
+  // Filter out entries with invalid coordinates
+  volunteerData = volunteerData.filter(entry =>
+    !isNaN(entry.lat) && !isNaN(entry.lon) &&
+    entry.lat !== null && entry.lon !== null &&
+    entry.lat !== 0 && entry.lon !== 0
+  );
+
+  console.log(`Processed ${volunteerData.length} valid volunteer location entries`);
+
+  // Expose the function to the global scope
+  window.processVolunteerData = processVolunteerData;
 }
 
 // Function to process loaded data

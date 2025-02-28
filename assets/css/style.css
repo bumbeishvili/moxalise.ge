@@ -923,6 +923,46 @@ a:hover {
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
 
+/* Volunteer live location marker in legend */
+.legend-volunteer-marker {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.legend-volunteer-marker svg {
+  display: block;
+}
+
+.legend-volunteer-marker svg circle:nth-child(1) {
+  animation: legend-pulse-outer 3s infinite ease-in-out;
+}
+
+@keyframes legend-pulse-outer {
+  0% {
+    r: 8;
+    opacity: 0.4;
+  }
+
+  50% {
+    r: 8.5;
+    opacity: 0.2;
+  }
+
+  100% {
+    r: 8;
+    opacity: 0.4;
+  }
+}
+
+.volunteer-legend-item {
+  margin-top: 2px;
+}
+
 @media (max-width: 768px) {
   .map-legend {
     bottom: 20px;
@@ -2363,3 +2403,109 @@ a:hover {
   opacity: 0;
   pointer-events: none;
 }
+
+/* Volunteer markers styling */
+.volunteer-marker {
+  cursor: pointer;
+}
+
+@keyframes pulse-outer {
+  0% {
+    r: 16;
+    opacity: 0.4;
+  }
+
+  50% {
+    r: 19;
+    opacity: 0.2;
+  }
+
+  100% {
+    r: 16;
+    opacity: 0.4;
+  }
+}
+
+@keyframes pulse-middle {
+  0% {
+    r: 12;
+    opacity: 0.6;
+  }
+
+  50% {
+    r: 14;
+    opacity: 0.4;
+  }
+
+  100% {
+    r: 12;
+    opacity: 0.6;
+  }
+}
+
+.volunteer-marker:hover circle:nth-child(3) {
+  transform-origin: center;
+  transform: scale(1.2);
+  transition: transform 0.2s;
+}
+
+.volunteer-outer-pulse {
+  animation: pulse-outer 2s infinite;
+}
+
+.volunteer-middle-pulse {
+  animation: pulse-middle 2s infinite;
+}
+
+/* Volunteer tooltip styling */
+.volunteer-tooltip {
+  padding: 0;
+  font-family: Arial, sans-serif;
+  max-width: 300px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tooltip-header {
+  background-color: #4285F4;
+  color: white;
+  padding: 10px 12px;
+  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.tooltip-content {
+  padding: 12px;
+  color: #333;
+  font-size: 13px;
+  line-height: 1.5;
+  background-color: white;
+}
+
+.tooltip-content p {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+}
+
+.tooltip-content strong {
+  color: #555;
+  font-weight: 600;
+  min-width: 80px;
+  display: inline-block;
+}
+
+/* Make sure tippy has a high z-index to appear above map elements */
+.tippy-box[data-theme~='light'] {
+  background-color: white;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+/* Live location marker styles - replaced with new volunteer marker styles */
+/* Removing old styles that could be causing conflicts */
+/* End of removed styles */

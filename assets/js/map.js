@@ -147,6 +147,15 @@ function initializeMap() {
 
     // Dispatch the map_initialized event
     window.dispatchEvent(new Event('map_initialized'));
+
+    // Setup initial markers - from existing code
+    setupMarkers();
+
+    // Add volunteer location markers
+    setupVolunteerMarkers();
+
+    // Start periodic refresh of volunteer markers
+    startVolunteerMarkersRefresh();
   });
 }
 
@@ -780,6 +789,11 @@ function toggleMapStyle(style) {
     });
   }
 
+  // Clear volunteer markers refresh interval
+  if (volunteerMarkersInterval) {
+    clearInterval(volunteerMarkersInterval);
+  }
+
   // Clean up existing markers to prevent duplication
   if (locationMarkers && locationMarkers.length > 0) {
     console.log(`Removing ${locationMarkers.length} existing markers`);
@@ -790,6 +804,18 @@ function toggleMapStyle(style) {
     });
     // Clear the markers array
     locationMarkers = [];
+  }
+
+  // Also clean up volunteer markers
+  if (volunteerMarkers && volunteerMarkers.length > 0) {
+    console.log(`Removing ${volunteerMarkers.length} volunteer markers`);
+    volunteerMarkers.forEach(marker => {
+      if (marker) {
+        marker.remove();
+      }
+    });
+    // Clear the volunteer markers array
+    volunteerMarkers = [];
   }
 
   // Define the map styles
@@ -902,7 +928,7 @@ function toggleMapStyle(style) {
     map.setStyle(standardStyle);
   }
 
-  // After the style is loaded, restore center and zoom and reapply any custom layers
+  // When map style is done loading, set up markers again
   map.once('styledata', function () {
     // Restore previous view position
     map.setCenter(currentCenter);
@@ -985,6 +1011,12 @@ function toggleMapStyle(style) {
     // Now that we've cleared the old markers, create new ones
     console.log('Setting up new markers after style change');
     setupMarkers();
+
+    // Recreate volunteer markers after style change
+    setupVolunteerMarkers();
+
+    // Restart volunteer markers refresh interval
+    startVolunteerMarkersRefresh();
   });
 }
 
@@ -1193,4 +1225,308 @@ function closeTooltip(id) {
     // Remove the instance from our tracking object
     delete window.tippyInstances[instanceId];
   }
+}
+
+// Global variables
+let MIN_ZOOM_LEVEL = 5;
+let mapClickedFeatureId = null;
+let currentMapStyle = 'standard'; // Default style
+let volunteerMarkers = []; // Track volunteer markers
+let volunteerMarkersInterval; // Interval for refreshing volunteer markers
+
+// Maps library reference fix - ensure we use maplibregl consistently
+const mapboxgl = maplibregl; // Alias for compatibility
+
+// Function to setup volunteer markers on the map
+function setupVolunteerMarkers() {
+  console.log('Setting up volunteer markers');
+
+  // Remove existing volunteer markers
+  if (volunteerMarkers && volunteerMarkers.length > 0) {
+    console.log(`Cleaning up ${volunteerMarkers.length} volunteer markers`);
+    volunteerMarkers.forEach(marker => {
+      if (marker) {
+        marker.remove();
+      }
+    });
+    volunteerMarkers = [];
+  }
+
+  if (!volunteerData || volunteerData.length === 0) {
+    console.log('No volunteer data available to display');
+    return;
+  }
+
+  console.log(`Creating ${volunteerData.length} volunteer markers`);
+
+  // Get current time for age calculations
+  const now = new Date();
+
+  // Create a marker for each volunteer location
+  volunteerData.forEach((volunteer, index) => {
+    // Ensure coordinates are valid numbers
+    const lat = parseFloat(volunteer.lat);
+    const lon = parseFloat(volunteer.lon);
+
+    // Skip if coordinates are invalid
+    if (isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) {
+      console.warn(`Skipping marker with invalid coordinates: [${lat}, ${lon}]`);
+      return;
+    }
+
+    // Calculate how old this location data is (in minutes)
+    const ageInMinutes = (now - volunteer.timestamp) / (1000 * 60);
+
+    // Determine marker color and pulse based on age
+    const { color, shouldPulse } = getVolunteerMarkerStyle(ageInMinutes);
+
+    // Create a simple marker element
+    const el = document.createElement('div');
+    el.className = 'volunteer-marker';
+    el.dataset.volunteerId = volunteer.phone_number || index;
+
+    // Create SVG for the marker
+    const svgSize = 40;
+    const innerRadius = 6;
+    const middleRadius = 12;
+    const outerRadius = 16;
+
+    // Create SVG markup
+    let svg = `
+      <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer circle -->
+        <circle 
+          cx="${svgSize / 2}" 
+          cy="${svgSize / 2}" 
+          r="${outerRadius}" 
+          fill="rgba(255,255,255,0.2)" 
+          stroke="${color}" 
+          stroke-width="2" 
+          opacity="0.4"
+          ${shouldPulse ? 'class="volunteer-outer-pulse"' : ''}
+        />
+        
+        <!-- Middle circle -->
+        <circle 
+          cx="${svgSize / 2}" 
+          cy="${svgSize / 2}" 
+          r="${middleRadius}" 
+          fill="rgba(255,255,255,0.6)" 
+          stroke="${color}" 
+          stroke-width="2"
+          ${shouldPulse ? 'class="volunteer-middle-pulse"' : ''}
+        />
+        
+        <!-- Inner circle -->
+        <circle 
+          cx="${svgSize / 2}" 
+          cy="${svgSize / 2}" 
+          r="${innerRadius}" 
+          fill="${color}" 
+          stroke="white" 
+          stroke-width="2" 
+        />
+    `;
+
+    // Add direction arrow if heading is available
+    if (volunteer.heading && !isNaN(volunteer.heading)) {
+      svg += `
+        <!-- Direction indicator -->
+        <polygon 
+          points="${svgSize / 2},5 ${svgSize / 2 - 5},15 ${svgSize / 2 + 5},15" 
+          fill="${color}" 
+          transform="rotate(${volunteer.heading} ${svgSize / 2} ${svgSize / 2})"
+        />
+      `;
+    }
+
+    // Close SVG
+    svg += `</svg>`;
+
+    // Set the SVG content
+    el.innerHTML = svg;
+
+    // Create the marker with MapLibre
+    try {
+      const marker = new maplibregl.Marker({
+        element: el,
+        anchor: 'center'
+      })
+        .setLngLat([lon, lat])
+        .addTo(map);
+
+      // Log the creation for debugging
+      console.log(`Created volunteer marker at [${lon}, ${lat}]`);
+
+      // Add tooltip with volunteer info
+      createVolunteerTooltip(marker, volunteer, ageInMinutes);
+
+      // Store marker reference for later cleanup
+      volunteerMarkers.push(marker);
+    } catch (error) {
+      console.error(`Error creating volunteer marker at [${lon}, ${lat}]:`, error);
+    }
+  });
+
+  // Make sure the SVG animations are properly added
+  ensureVolunteerMarkerCSS();
+}
+
+// Function to determine volunteer marker style based on age
+function getVolunteerMarkerStyle(ageInMinutes) {
+  // Recent updates (< 15 minutes): Blue and pulsing
+  if (ageInMinutes < 15) {
+    return { color: '#4285F4', shouldPulse: true }; // Google Maps blue
+  }
+  // Between 0-2 hours: Blue gradually becoming gray
+  else if (ageInMinutes < 120) {
+    // Calculate color between blue and gray based on age
+    const blueComponent = Math.max(30, Math.floor(30 + (200 - ageInMinutes) / 120 * 220));
+    const grayComponent = Math.min(128, Math.floor(128 + ageInMinutes / 120 * 70));
+    return {
+      color: `rgb(${grayComponent}, ${grayComponent}, ${blueComponent})`,
+      shouldPulse: false
+    };
+  }
+  // Older than 2 hours: Gray
+  else {
+    return { color: '#9E9E9E', shouldPulse: false };
+  }
+}
+
+// Function to ensure CSS for volunteer markers is added
+function ensureVolunteerMarkerCSS() {
+  if (!document.querySelector('style#volunteer-marker-style')) {
+    const style = document.createElement('style');
+    style.id = 'volunteer-marker-style';
+    style.textContent = `
+      .volunteer-marker {
+        cursor: pointer;
+      }
+      
+      @keyframes pulse-outer {
+        0% { r: 16; opacity: 0.4; }
+        50% { r: 19; opacity: 0.2; }
+        100% { r: 16; opacity: 0.4; }
+      }
+      
+      @keyframes pulse-middle {
+        0% { r: 12; opacity: 0.6; }
+        50% { r: 14; opacity: 0.4; }
+        100% { r: 12; opacity: 0.6; }
+      }
+      
+      .volunteer-marker:hover circle:nth-child(3) {
+        transform-origin: center;
+        transform: scale(1.2);
+        transition: transform 0.2s;
+      }
+      
+      .volunteer-outer-pulse {
+        animation: pulse-outer 2s infinite;
+      }
+      
+      .volunteer-middle-pulse {
+        animation: pulse-middle 2s infinite;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// Function to create tooltip for volunteer markers
+function createVolunteerTooltip(marker, volunteer, ageInMinutes) {
+  // Format the age for display
+  const ageText = formatTimeAgo(ageInMinutes);
+
+  // Create tooltip content
+  const tooltipContent = `
+    <div class="volunteer-tooltip">
+      <div class="tooltip-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+        Live Volunteer Location
+      </div>
+      <div class="tooltip-content">
+        <p><strong>Updated:</strong> ${ageText}</p>
+        <p><strong>Phone:</strong> ${volunteer.phone_number || 'N/A'}</p>
+        ${volunteer.altitude ? `<p><strong>Altitude:</strong> ${Math.round(volunteer.altitude)}m</p>` : ''}
+        ${volunteer.heading ? `<p><strong>Direction:</strong> ${formatHeading(volunteer.heading)}</p>` : ''}
+        ${volunteer.speed ? `<p><strong>Speed:</strong> ${formatSpeed(volunteer.speed)}</p>` : ''}
+      </div>
+    </div>
+  `;
+
+  // Create tooltip using Tippy.js
+  const tooltipInstance = tippy(marker.getElement(), {
+    content: tooltipContent,
+    allowHTML: true,
+    interactive: true,
+    placement: 'top',
+    trigger: 'click',
+    theme: 'light',
+    appendTo: document.body,
+    maxWidth: 300,
+    animation: 'scale',
+  });
+
+  // Add reference to instance for cleanup
+  const instanceId = `volunteer-${volunteer.phone_number}-${Date.now()}`;
+  if (typeof tippyInstances !== 'undefined') {
+    tippyInstances[instanceId] = tooltipInstance;
+  }
+}
+
+// Helper function to format time ago text
+function formatTimeAgo(minutes) {
+  if (minutes < 1) {
+    return 'Just now';
+  } else if (minutes < 60) {
+    return `${Math.floor(minutes)} minutes ago`;
+  } else if (minutes < 1440) {
+    const hours = Math.floor(minutes / 60);
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  } else {
+    const days = Math.floor(minutes / 1440);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  }
+}
+
+// Helper function to format heading in a more user-friendly way
+function formatHeading(heading) {
+  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+  const index = Math.round(heading / 45) % 8;
+  return `${Math.round(heading)}° (${directions[index]})`;
+}
+
+// Helper function to format speed in a more user-friendly way
+function formatSpeed(speedMps) {
+  const speedKmh = speedMps * 3.6; // Convert m/s to km/h
+  return `${Math.round(speedKmh)} km/h`;
+}
+
+// Function to start periodic refresh of volunteer markers
+function startVolunteerMarkersRefresh() {
+  // Clear any existing interval
+  if (volunteerMarkersInterval) {
+    clearInterval(volunteerMarkersInterval);
+  }
+
+  // Refresh volunteer markers every minute to update colors based on timestamp
+  volunteerMarkersInterval = setInterval(() => {
+    console.log('Refreshing volunteer markers');
+
+    // Fetch fresh volunteer data from API
+    loadVolunteerData()
+      .then(newData => {
+        // Process the new data
+        processVolunteerData(newData);
+        // Update markers with fresh data
+        setupVolunteerMarkers();
+      })
+      .catch(error => {
+        console.error('Error refreshing volunteer data:', error);
+        // Still try to update markers with existing data
+        setupVolunteerMarkers();
+      });
+  }, 60000); // Update every minute
 }
