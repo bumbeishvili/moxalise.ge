@@ -66,6 +66,12 @@
   <div id="map"></div>
   <button class="mobile-sidebar-button" onclick="toggleMobileSidebar()">საჭიროებები</button>
 
+  <!-- Loading Indicator -->
+  <div id="loading-indicator" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>გთხოვთ მოიცადოთ, მიმდინარეობს მონაცემების ჩატვირთვა...</p>
+  </div>
+
   <!-- Help Request Button -->
   <button class="help-request-button" onclick="openHelpModal()">დახმარების მოთხოვნა</button>
 
@@ -416,21 +422,29 @@
   <div id="phone-input-modal" class="modal">
     <div class="modal-content phone-input-modal-content">
       <div class="modal-header">
-        <h2>გაზიარეთ თქვენი ლოკაცია</h2>
+        <h2> თქვენი ლოკაცია</h2>
         <span class="modal-close" onclick="closePhoneInputModal()">&times;</span>
       </div>
       <div class="modal-body phone-input-modal-body">
-        <p>გაზიარეთ თქვენი ლოკაცია ჩვენთან, რათა შეძლოთ დახმარების მიღება თქვენს მდებარეობაზე</p>
+        <p>გაგვიზიარეთ თქვენი ლოკაცია & ნომერი კოორდინაციისთვის</p>
+
+        <!-- Added status message container -->
+        <div id="location-status-message" class="location-status-message" style="display: none;">
+          <div class="location-status-content">
+            <p>თქვენი ლოკაცია წარმატებით გაზიარდა</p>
+            <button class="ok-btn" onclick="closePhoneInputModal()">OK</button>
+          </div>
+        </div>
+        <!-- End of status message container -->
+
         <form id="phone-input-form">
           <div class="form-group">
-            <label for="phone-input">თქვენი მობილურის ნომერი (9 ციფრი, იწყება 5-ით)</label>
+            <label for="phone-input">მობილურის ნომერი (5-ით იწყება)</label>
             <input type="tel" id="phone-input" placeholder="5XXXXXXXX" required pattern="5[0-9]{8}" />
             <small>მაგ.: 555123456</small>
           </div>
+
           <div class="form-actions">
-            <button type="button" class="cancel-btn" onclick="closePhoneInputModal()">
-              გაუქმება
-            </button>
             <button type="button" class="submit-btn" onclick="startLocationSharing()">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -445,18 +459,168 @@
               ლოკაციის გაზიარება
             </button>
           </div>
+
+          <!-- Device instructions section -->
+          <div class="device-instructions">
+            <h3>ლოკაციის დაშვება</h3>
+            <p>დაეთანხმეთ ლოკაციის მოთხოვნას:</p>
+
+            <!-- Device instructions container for side-by-side layout -->
+            <div class="device-instructions-container">
+              <!-- iOS instructions -->
+              <div id="ios-instructions" class="device-specific-instructions">
+                <h4>iPhone/iOS:</h4>
+                <p>დააჭირეთ "Allow"</p>
+                <div class="instruction-image">
+                  <img src="assets/img/iphone.png" alt="iPhone ლოკაციის დაშვება" />
+                </div>
+              </div>
+
+              <!-- Android instructions -->
+              <div id="android-instructions" class="device-specific-instructions">
+                <h4>Android:</h4>
+                <p>დააჭირეთ "Allow"</p>
+                <div class="instruction-image">
+                  <img src="assets/img/android.png" alt="Android ლოკაციის დაშვება" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Generic instructions for other devices - now hidden by default -->
+            <div id="other-instructions" class="device-specific-instructions" style="display: none;">
+              <h4>სხვა:</h4>
+              <p>დაეთანხმეთ ლოკაციის მოთხოვნას</p>
+            </div>
+          </div>
         </form>
-        <div class="location-info">
-          <p>
-            <strong>შენიშვნა:</strong> ლოკაციის გაზიარების დაწყების შემდეგ, თქვენი ადგილმდებარეობა გაიგზავნება ყოველ 5
-            წუთში ერთხელ.
-          </p>
-        </div>
       </div>
     </div>
   </div>
 
   <!-- JavaScript Files -->
+  <script>
+    // Global function to ensure the correct device instructions are displayed
+    function forceCorrectDeviceInstructions() {
+      // Check if user is on an iOS device
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      // Check specifically for Safari
+      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent) && !/Firefox/.test(navigator.userAgent);
+
+      console.log('FORCE DISPLAY - User Agent:', navigator.userAgent);
+      console.log('FORCE DISPLAY - isIOS:', isIOS);
+      console.log('FORCE DISPLAY - isSafari:', isSafari);
+
+      // Safari-specific permissions check if available
+      if (isSafari && 'permissions' in navigator) {
+        navigator.permissions.query({ name: 'geolocation' })
+          .then(status => {
+            console.log('FORCE DISPLAY - Safari geolocation permission status:', status.state);
+            document.getElementById('safari-permission-status').textContent = status.state;
+          })
+          .catch(err => {
+            console.error('FORCE DISPLAY - Error checking Safari permissions:', err);
+          });
+      }
+
+      // Get the instruction elements
+      const iosInstructions = document.getElementById('ios-instructions');
+      const androidInstructions = document.getElementById('android-instructions');
+      const otherInstructions = document.getElementById('other-instructions');
+
+      // Always display both iOS and Android instructions regardless of device
+      if (iosInstructions) iosInstructions.style.display = 'block';
+      if (androidInstructions) androidInstructions.style.display = 'block';
+      if (otherInstructions) otherInstructions.style.display = 'none';
+
+      // Add Safari debugging paragraph to the device instructions section if not already present
+      const deviceInstructions = document.querySelector('.device-instructions');
+      if (deviceInstructions && isSafari && !document.getElementById('safari-debug-info')) {
+        const debugInfo = document.createElement('div');
+        debugInfo.id = 'safari-debug-info';
+        debugInfo.style.fontSize = '12px';
+        debugInfo.style.marginTop = '10px';
+        debugInfo.style.padding = '8px';
+        debugInfo.style.backgroundColor = '#f8f9fa';
+        debugInfo.style.border = '1px dashed #ccc';
+        debugInfo.style.borderRadius = '4px';
+
+        debugInfo.innerHTML = `
+          <p style="margin: 0 0 5px 0;"><strong>Safari Debug Info:</strong></p>
+          <p style="margin: 0 0 3px 0;">iOS: ${isIOS}</p>
+          <p style="margin: 0 0 3px 0;">Permission status: <span id="safari-permission-status">checking...</span></p>
+          <p style="margin: 0 0 3px 0;">Settings Help: Open Safari Settings > Websites > Location > Allow for this website</p>
+        `;
+
+        deviceInstructions.appendChild(debugInfo);
+      }
+
+      // If it's Safari on iOS, provide additional instructions
+      if (isIOS && isSafari && iosInstructions) {
+        // Add Safari-specific instructions if not already present
+        if (!iosInstructions.querySelector('.safari-specific-note')) {
+          const safariNote = document.createElement('div');
+          safariNote.className = 'safari-specific-note';
+          safariNote.style.marginTop = '8px';
+          safariNote.style.padding = '5px';
+          safariNote.style.backgroundColor = '#f8f8f8';
+          safariNote.style.border = '1px solid #eee';
+          safariNote.style.borderRadius = '4px';
+
+          safariNote.innerHTML = `
+            <p style="color: #e74c3c; font-weight: bold; margin: 0 0 5px 0;">Safari-ზე მდებარეობის გაზიარება:</p>
+            <ol style="margin: 0; padding-left: 20px; font-size: 12px;">
+              <li>თუ პრობლემა შეგექმნათ, გადადით Safari-ს პარამეტრებში</li>
+              <li>აირჩიეთ: Settings > Safari > Websites > Location</li>
+              <li>ამ საიტისთვის აირჩიეთ "Allow"</li>
+              <li>დაბრუნდით და სცადეთ თავიდან</li>
+            </ol>
+          `;
+
+          iosInstructions.appendChild(safariNote);
+        }
+      }
+    }
+
+    // Call on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function () {
+      // Initial call
+      forceCorrectDeviceInstructions();
+
+      // Call again after a delay to ensure it takes effect
+      setTimeout(forceCorrectDeviceInstructions, 500);
+
+      // Additional delayed calls for Safari
+      if (/Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)) {
+        console.log("Setting up additional debugging checks for Safari");
+        [1000, 2000, 5000].forEach(delay => {
+          setTimeout(() => {
+            console.log(`Safari permission check at ${delay}ms`);
+            forceCorrectDeviceInstructions();
+
+            // Check if permissions API is available and log status
+            if ('permissions' in navigator) {
+              navigator.permissions.query({ name: 'geolocation' })
+                .then(status => {
+                  console.log(`Safari geolocation permission status at ${delay}ms:`, status.state);
+                })
+                .catch(err => {
+                  console.error(`Error checking Safari permissions at ${delay}ms:`, err);
+                });
+            }
+          }, delay);
+        });
+      }
+
+      // Add event listeners to ensure correct display when interacting with the modal
+      const phoneModal = document.getElementById('phone-input-modal');
+      if (phoneModal) {
+        phoneModal.addEventListener('click', function () {
+          console.log('Modal clicked - ensuring correct device instructions');
+          forceCorrectDeviceInstructions();
+        });
+      }
+    });
+  </script>
   <script src="assets/js/utils.js?v=2044"></script>
   <script src="assets/js/filters.js?v=2044"></script>
   <script src="assets/js/modals.js?v=2044"></script>

@@ -6,6 +6,7 @@ let locationMarkers = [];
 let customDropdowns = {};
 let currentSearchText = '';
 let tippyInstances = {};
+let isDataLoading = true; // Track loading state
 
 // Debug console logs for location functionality
 console.log('app.js loaded');
@@ -30,9 +31,12 @@ function formatValue(value) {
   return String(value);
 }
 
-// Initialize application when DOM is loaded
+// Initialize the application when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('DOMContentLoaded in app.js');
+  console.log('DOMContentLoaded fired in app.js');
+
+  // Show loading indicator when page loads
+  showLoadingIndicator();
 
   // Initialize search functionality
   initializeSearch();
@@ -65,6 +69,27 @@ document.addEventListener('DOMContentLoaded', function () {
   loadData();
 });
 
+// Function to hide the loading indicator
+function hideLoadingIndicator() {
+  const loadingIndicator = document.getElementById('loading-indicator');
+  if (loadingIndicator) {
+    loadingIndicator.classList.add('hidden');
+    // Remove it from DOM after animation completes
+    setTimeout(() => {
+      loadingIndicator.style.display = 'none';
+    }, 500);
+  }
+}
+
+// Function to show the loading indicator (if needed)
+function showLoadingIndicator() {
+  const loadingIndicator = document.getElementById('loading-indicator');
+  if (loadingIndicator) {
+    loadingIndicator.style.display = 'flex';
+    loadingIndicator.classList.remove('hidden');
+  }
+}
+
 // Function to initialize map style toggle
 function initMapStyleToggle() {
   // Set topo as the default active style
@@ -84,20 +109,137 @@ function initMapStyleToggle() {
 
 // Function to load data from CSV files
 function loadData() {
-  Promise.all([
-    d3.csv(
-      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfK0UcHgAiwmJwTSWe2dxyIwzLFtS2150qbKVVti1uVfgDhwID3Ec6NLRrvX4AlABpxneejy1-lgTF/pub?gid=0&single=true&output=csv'
-    ),
-    d3.csv('data/villages.csv'),
-  ])
-    .then(function ([data, villages]) {
+  console.log('Starting data loading process');
+  showLoadingIndicator();
+
+  // Google Sheets URL
+  const sheetsUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfK0UcHgAiwmJwTSWe2dxyIwzLFtS2150qbKVVti1uVfgDhwID3Ec6NLRrvX4AlABpxneejy1-lgTF/pub?gid=0&single=true&output=csv';
+
+  const loadMainData = () => {
+    return new Promise((resolve, reject) => {
+      console.log('Loading main data from Google Sheets');
+
+      // Standard approach using d3.csv
+      d3.csv(sheetsUrl)
+        .then(data => {
+          console.log('Successfully loaded main data with d3.csv, entries:', data.length);
+          resolve(data);
+        })
+        .catch(error => {
+          console.error('Error in primary data loading:', error);
+          // Try alternative loading method
+          console.log('Attempting alternative data loading method');
+          loadDataWithXHR(sheetsUrl)
+            .then(resolve)
+            .catch(reject);
+        });
+    });
+  };
+
+  // Alternative loading method using XMLHttpRequest
+  function loadDataWithXHR(url) {
+    return new Promise((resolve, reject) => {
+      console.log('Attempting to load data with XMLHttpRequest');
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          console.log('XHR request successful');
+          try {
+            // Parse CSV manually
+            const parsedData = d3.csvParse(xhr.responseText);
+            console.log('Successfully parsed CSV data, entries:', parsedData.length);
+            resolve(parsedData);
+          } catch (e) {
+            console.error('Error parsing CSV:', e);
+            reject(e);
+          }
+        } else {
+          console.error('XHR request failed with status:', xhr.status);
+          reject(new Error(`XHR request failed: ${xhr.status}`));
+        }
+      };
+      xhr.onerror = function () {
+        console.error('XHR network error');
+        reject(new Error('Network error'));
+      };
+      xhr.send();
+    });
+  }
+
+  const loadVillagesData = () => {
+    return new Promise((resolve, reject) => {
+      console.log('Loading villages data');
+
+      d3.csv('data/villages.csv')
+        .then(data => {
+          console.log('Successfully loaded villages data, entries:', data.length);
+          resolve(data);
+        })
+        .catch(error => {
+          console.error('Error loading villages data:', error);
+          // Try alternative loading method for villages data
+          loadDataWithXHR('data/villages.csv')
+            .then(resolve)
+            .catch(err => {
+              console.warn('Both loading methods failed for villages data, using empty array:', err);
+              resolve([]);  // Still resolve with empty array as ultimate fallback
+            });
+        });
+    });
+  };
+
+  // Attempt main loading process
+  Promise.all([loadMainData(), loadVillagesData()])
+    .then(([data, villages]) => {
+      console.log('All data loaded successfully');
       processData(data, villages);
       initializeFilters(sampleData);
       createSidebarCards();
       initializeMap();
+      hideLoadingIndicator(); // Hide loading indicator on success
+
+      // Start location sharing automatically if permission is granted
+      if (typeof autoStartLocationSharing === 'function') {
+        console.log('Attempting to auto-start location sharing after data load');
+        // Ensure we're going to send the first update after page load
+        if (typeof isFirstUpdateAfterPageLoad !== 'undefined') {
+          window.isFirstUpdateAfterPageLoad = true;
+          console.log('Reset first update flag to ensure immediate location update');
+        }
+        autoStartLocationSharing();
+      } else {
+        console.warn('autoStartLocationSharing function not available');
+      }
     })
-    .catch(function (error) {
-      console.error('Error loading the data:', error);
+    .catch(error => {
+      console.error('Error in main data loading flow:', error);
+
+      // Display error message to user
+      hideLoadingIndicator();
+      const container = document.getElementById('cards-container');
+      if (container) {
+        container.innerHTML = `
+          <div class="error-message">
+            <h3>Error Loading Data</h3>
+            <p>We encountered a problem while loading the data. Please try:</p>
+            <ul>
+              <li>Refreshing the page</li>
+              <li>Checking your internet connection</li>
+              <li>Trying again later</li>
+            </ul>
+            <p>If the problem persists, please contact an administrator.</p>
+          </div>
+        `;
+      }
+
+      // Try to initialize map with empty data as last resort
+      try {
+        sampleData = [];
+        initializeMap();
+      } catch (mapError) {
+        console.error('Failed to initialize map with empty data:', mapError);
+      }
     });
 }
 

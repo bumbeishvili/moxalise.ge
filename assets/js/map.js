@@ -21,9 +21,16 @@ function initializeMap() {
     { north: -90, south: 90, east: -180, west: 180 }
   );
 
-  maplibregl.setRTLTextPlugin(
-    'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js'
-  );
+  // Only call setRTLTextPlugin if it hasn't been called yet
+  if (!maplibregl.getRTLTextPluginStatus || maplibregl.getRTLTextPluginStatus() !== 'loaded') {
+    try {
+      maplibregl.setRTLTextPlugin(
+        'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js'
+      );
+    } catch (e) {
+      console.warn('RTL Text Plugin already loaded or error loading:', e);
+    }
+  }
 
   map = new maplibregl.Map({
     container: 'map',
