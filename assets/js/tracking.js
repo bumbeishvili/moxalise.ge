@@ -342,11 +342,20 @@ function showMyLocation() {
     trackingAttempted: window.locationTrackingAttempted
   });
 
-  // Always show a toast when the location button is clicked
-  // This will help mobile users understand they need to allow location access
-  console.log('Attempting to show toast notification...');
-  console.log('showToast function exists:', typeof showToast === 'function');
-  console.log('window.showToast function exists:', typeof window.showToast === 'function');
+  // Clear any existing location toast when the button is clicked
+  if (typeof window.clearToast === 'function') {
+    console.log('Clearing any existing location consent toast');
+    window.clearToast('location-consent');
+  } else {
+    console.log('clearToast function not available');
+  }
+
+  // Log toast function availability for debugging
+  console.log('Toast functions availability:', {
+    showToast: typeof showToast === 'function',
+    windowShowToast: typeof window.showToast === 'function',
+    clearToast: typeof window.clearToast === 'function'
+  });
 
   // Log Safari-specific information if applicable
   if (isSafari()) {

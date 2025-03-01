@@ -226,6 +226,11 @@ function showLocationAccessToast() {
         closable: true
       });
 
+      // Add a data-id attribute to the toast for easy identification
+      if (toastElement) {
+        toastElement.setAttribute('data-id', 'location-consent');
+      }
+
       // Remove pulsing effect after toast closes
       if (toastElement) {
         // Create a function to remove the pulsing class
@@ -259,7 +264,32 @@ function showLocationAccessToast() {
   }, 500);
 }
 
+/**
+ * Clears a specific toast by ID or clears all toasts if no ID is provided
+ * @param {string} [toastId] - Optional ID of the toast to clear
+ */
+function clearToast(toastId) {
+  if (toastContainer) {
+    if (toastId) {
+      // Look for toast element with data-id attribute
+      const toastElements = toastContainer.querySelectorAll('.toast');
+      toastElements.forEach(toast => {
+        if (toast.getAttribute('data-id') === toastId) {
+          removeToast(toast);
+        }
+      });
+    } else {
+      // Clear all toasts
+      const toastElements = toastContainer.querySelectorAll('.toast');
+      toastElements.forEach(toast => {
+        removeToast(toast);
+      });
+    }
+  }
+}
+
 // Make functions globally available
 window.showToast = showToast;
 window.removeToast = removeToast;
 window.showLocationAccessToast = showLocationAccessToast;
+window.clearToast = clearToast;
