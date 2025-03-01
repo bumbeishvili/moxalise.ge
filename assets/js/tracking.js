@@ -41,6 +41,18 @@ document.addEventListener('DOMContentLoaded', function () {
     hasGeolocation: 'geolocation' in navigator
   });
 
+  // Check if we should show the toast reminder about location access
+  // We'll delay this a bit to ensure the page and map are fully loaded
+  setTimeout(() => {
+    // Only show on mobile devices
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      // Check if toast system is available
+      if (typeof window.showLocationAccessToast === 'function') {
+        window.showLocationAccessToast();
+      }
+    }
+  }, 3000);
+
   // Check for saved phone number
   const savedPhone = localStorage.getItem('lastPhoneNumber');
   const lastLocation = localStorage.getItem('lastSentLocation');
@@ -241,11 +253,35 @@ function autoStartLocationSharing() {
                 } else {
                   console.error('watchPosition error:', error.code, error.message);
                   if (error.code === 1) { // PERMISSION_DENIED
-                    alert('გთხოვთ ნება დართოთ ლოკაციის გაზიარებას');
+                    if (typeof showToast === 'function') {
+                      showToast({
+                        message: 'გთხოვთ ნება დართოთ ლოკაციის გაზიარებას',
+                        type: 'error',
+                        duration: 7000
+                      });
+                    } else {
+                      alert('გთხოვთ ნება დართოთ ლოკაციის გაზიარებას');
+                    }
                   } else if (error.code === 2) { // POSITION_UNAVAILABLE
-                    alert('თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.');
+                    if (typeof showToast === 'function') {
+                      showToast({
+                        message: 'თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.',
+                        type: 'error',
+                        duration: 7000
+                      });
+                    } else {
+                      alert('თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.');
+                    }
                   } else if (error.code === 3) { // TIMEOUT
-                    alert('ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.');
+                    if (typeof showToast === 'function') {
+                      showToast({
+                        message: 'ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.',
+                        type: 'error',
+                        duration: 7000
+                      });
+                    } else {
+                      alert('ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.');
+                    }
                   }
                 }
               },
@@ -306,6 +342,32 @@ function showMyLocation() {
     trackingAttempted: window.locationTrackingAttempted
   });
 
+  // Always show a toast when the location button is clicked
+  // This will help mobile users understand they need to allow location access
+  console.log('Attempting to show toast notification...');
+  console.log('showToast function exists:', typeof showToast === 'function');
+  console.log('window.showToast function exists:', typeof window.showToast === 'function');
+
+  // Try both global and local showToast functions to ensure one works
+  if (typeof showToast === 'function') {
+    console.log('Calling local showToast function');
+    showToast({
+      message: 'გთხოვთ დაუშვათ ლოკაციის წვდომა ბრაუზერში',
+      type: 'info',
+      duration: 7000
+    });
+  } else if (typeof window.showToast === 'function') {
+    console.log('Calling window.showToast function');
+    window.showToast({
+      message: 'გთხოვთ დაუშვათ ლოკაციის წვდომა ბრაუზერში',
+      type: 'info',
+      duration: 7000
+    });
+  } else {
+    console.error('No toast function available - toast notification system not properly loaded');
+    alert('გთხოვთ დაუშვათ ლოკაციის წვდომა ბრაუზერში');
+  }
+
   // Log Safari-specific information if applicable
   if (isSafari()) {
     console.log('Safari browser detected in showMyLocation');
@@ -363,7 +425,15 @@ function showMyLocation() {
         }, 500);
       } else {
         console.error('openPhoneInputModal function not found!');
-        alert('Error: Could not open phone input form. Please refresh the page and try again.');
+        if (typeof showToast === 'function') {
+          showToast({
+            message: 'Error: Could not open phone input form. Please refresh the page and try again.',
+            type: 'error',
+            duration: 7000
+          });
+        } else {
+          alert('Error: Could not open phone input form. Please refresh the page and try again.');
+        }
       }
     }, 300);
 
@@ -439,14 +509,30 @@ function startLocationSharing() {
   const phoneInput = document.getElementById('phone-input');
   if (!phoneInput) {
     console.error('phone-input element not found!');
-    alert('Error: Could not find phone input field. Please refresh the page and try again.');
+    if (typeof showToast === 'function') {
+      showToast({
+        message: 'Error: Could not find phone input field. Please refresh the page and try again.',
+        type: 'error',
+        duration: 7000
+      });
+    } else {
+      alert('Error: Could not find phone input field. Please refresh the page and try again.');
+    }
     return;
   }
 
   const phoneNumber = phoneInput.value.trim();
 
   if (!validatePhoneNumber(phoneNumber)) {
-    alert('გთხოვთ შეიყვანოთ სწორი მობილურის ნომერი, რომელიც იწყება 5-ით და შედგება 9 ციფრისგან');
+    if (typeof showToast === 'function') {
+      showToast({
+        message: 'გთხოვთ შეიყვანოთ სწორი მობილურის ნომერი, რომელიც იწყება 5-ით და შედგება 9 ციფრისგან',
+        type: 'warning',
+        duration: 7000
+      });
+    } else {
+      alert('გთხოვთ შეიყვანოთ სწორი მობილურის ნომერი, რომელიც იწყება 5-ით და შედგება 9 ციფრისგან');
+    }
     return;
   }
 
@@ -557,11 +643,35 @@ function startLocationSharing() {
                 } else {
                   console.error('watchPosition error:', error.code, error.message);
                   if (error.code === 1) { // PERMISSION_DENIED
-                    alert('გთხოვთ ნება დართოთ ლოკაციის გაზიარებას');
+                    if (typeof showToast === 'function') {
+                      showToast({
+                        message: 'გთხოვთ ნება დართოთ ლოკაციის გაზიარებას',
+                        type: 'error',
+                        duration: 7000
+                      });
+                    } else {
+                      alert('გთხოვთ ნება დართოთ ლოკაციის გაზიარებას');
+                    }
                   } else if (error.code === 2) { // POSITION_UNAVAILABLE
-                    alert('თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.');
+                    if (typeof showToast === 'function') {
+                      showToast({
+                        message: 'თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.',
+                        type: 'error',
+                        duration: 7000
+                      });
+                    } else {
+                      alert('თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.');
+                    }
                   } else if (error.code === 3) { // TIMEOUT
-                    alert('ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.');
+                    if (typeof showToast === 'function') {
+                      showToast({
+                        message: 'ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.',
+                        type: 'error',
+                        duration: 7000
+                      });
+                    } else {
+                      alert('ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.');
+                    }
                   }
                 }
               },
@@ -594,7 +704,15 @@ function startLocationSharing() {
               button.textContent = originalText;
               button.disabled = false;
             }
-            alert('Error setting up location tracking: ' + error.message);
+            if (typeof showToast === 'function') {
+              showToast({
+                message: 'Error setting up location tracking: ' + error.message,
+                type: 'error',
+                duration: 7000
+              });
+            } else {
+              alert('Error setting up location tracking: ' + error.message);
+            }
           }
         },
         function (error) {
@@ -604,11 +722,35 @@ function startLocationSharing() {
           } else {
             console.error('Geolocation error in startLocationSharing:', error.code, error.message);
             if (error.code === 1) { // PERMISSION_DENIED
-              alert('გთხოვთ ნება დართოთ ლოკაციის გაზიარებას');
+              if (typeof showToast === 'function') {
+                showToast({
+                  message: 'გთხოვთ ნება დართოთ ლოკაციის გაზიარებას',
+                  type: 'error',
+                  duration: 7000
+                });
+              } else {
+                alert('გთხოვთ ნება დართოთ ლოკაციის გაზიარებას');
+              }
             } else if (error.code === 2) { // POSITION_UNAVAILABLE
-              alert('თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.');
+              if (typeof showToast === 'function') {
+                showToast({
+                  message: 'თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.',
+                  type: 'error',
+                  duration: 7000
+                });
+              } else {
+                alert('თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.');
+              }
             } else if (error.code === 3) { // TIMEOUT
-              alert('ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.');
+              if (typeof showToast === 'function') {
+                showToast({
+                  message: 'ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.',
+                  type: 'error',
+                  duration: 7000
+                });
+              } else {
+                alert('ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.');
+              }
             }
           }
 
@@ -621,7 +763,15 @@ function startLocationSharing() {
       );
     } else {
       console.error('Geolocation is not supported by this browser');
-      alert('თქვენი ბრაუზერი ვერ იძლევა ლოკაციის გაზიარების საშუალებას');
+      if (typeof showToast === 'function') {
+        showToast({
+          message: 'თქვენი ბრაუზერი ვერ იძლევა ლოკაციის გაზიარების საშუალებას',
+          type: 'error',
+          duration: 7000
+        });
+      } else {
+        alert('თქვენი ბრაუზერი ვერ იძლევა ლოკაციის გაზიარების საშუალებას');
+      }
 
       if (button) {
         button.textContent = originalText;
