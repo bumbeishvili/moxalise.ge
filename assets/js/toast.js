@@ -206,11 +206,21 @@ function showLocationAccessToast() {
     windowFunction: typeof window.showToast === 'function'
   });
 
-  // Add pulse animation to location button
+  // Add pulse animation to location button and show arrow
   const locationButton = document.querySelector('.location-button');
+  const locationArrow = document.getElementById('location-button-arrow');
+
   if (locationButton) {
     locationButton.classList.add('pulsing');
     console.log('Added pulsing class to location button');
+
+    // Show the arrow pointing to the location button
+    if (locationArrow) {
+      locationArrow.style.display = 'block';
+      console.log('Showing arrow pointing to location button');
+    } else {
+      console.warn('Location button arrow element not found');
+    }
   } else {
     console.warn('Location button not found when trying to add pulsing animation');
   }
@@ -233,11 +243,18 @@ function showLocationAccessToast() {
 
       // Remove pulsing effect after toast closes
       if (toastElement) {
-        // Create a function to remove the pulsing class
+        // Create a function to remove the pulsing class and hide arrow
         const removePulsing = () => {
           if (locationButton) {
             locationButton.classList.remove('pulsing');
             console.log('Removed pulsing class from location button');
+          }
+
+          // Hide the arrow pointing to location button
+          const locationArrow = document.getElementById('location-button-arrow');
+          if (locationArrow) {
+            locationArrow.style.display = 'none';
+            console.log('Hiding arrow pointing to location button');
           }
         };
 
