@@ -122,26 +122,11 @@ function initializeMap() {
     // Define the legend element variable
     const legendElement = document.querySelector('.map-legend');
 
-    // Add responsiveness for the legend
-    function updateLegendPosition() {
-      if (window.innerWidth <= 768) {
-        // On mobile, move the legend to fixed bottom position
-        legendElement.style.bottom = '70px';
-        legendElement.style.left = '32%';
-        legendElement.style.transform = 'translateX(-50%)';
-      } else {
-        // On desktop, restore the original position
-        legendElement.style.bottom = '80px';
-        legendElement.style.left = '10px';
-        legendElement.style.transform = 'none';
-      }
+    // We're using CSS for legend positioning now, so we don't need to set inline styles
+    // Only ensure the hidden class is properly set
+    if (legendElement && !legendElement.classList.contains('hidden')) {
+      legendElement.classList.add('hidden');
     }
-
-    // Call it initially
-    updateLegendPosition();
-
-    // Update on resize
-    window.addEventListener('resize', updateLegendPosition);
 
     console.log('Map is now fully initialized and ready for highlighting');
 

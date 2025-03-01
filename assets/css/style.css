@@ -820,14 +820,15 @@ a:hover {
 
 /* Map legend styles */
 .map-legend {
-  position: absolute;
-  bottom: 80px;
-  left: 10px;
+  position: fixed;
+  bottom: 118px;
+  right: 517px;
+  left: auto;
   background: white;
   padding: 10px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  z-index: 100;
+  z-index: 1002;
   font-size: 14px;
   max-width: 220px;
   transition:
@@ -873,9 +874,9 @@ a:hover {
 }
 
 .legend-toggle {
-  position: absolute;
-  bottom: 30px;
-  left: 10px;
+  position: fixed;
+  bottom: 80px;
+  right: 520px;
   background: white;
   color: #333;
   border: none;
@@ -884,8 +885,8 @@ a:hover {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
   cursor: pointer;
   font-size: 13px;
-  z-index: 99;
-  display: none;
+  z-index: 1001;
+  display: block;
 }
 
 .legend-toggle:hover {
@@ -965,10 +966,19 @@ a:hover {
 
 @media (max-width: 768px) {
   .map-legend {
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 90%;
+    bottom: 120px;
+    right: 10px;
+    left: auto;
+    transform: none;
+    max-width: 80%;
+  }
+
+  .legend-toggle {
+    position: fixed;
+    bottom: 80px;
+    right: 10px;
+    font-size: 12px;
+    padding: 6px 10px;
   }
 }
 

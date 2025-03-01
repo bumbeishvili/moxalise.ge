@@ -348,26 +348,6 @@ function showMyLocation() {
   console.log('showToast function exists:', typeof showToast === 'function');
   console.log('window.showToast function exists:', typeof window.showToast === 'function');
 
-  // Try both global and local showToast functions to ensure one works
-  if (typeof showToast === 'function') {
-    console.log('Calling local showToast function');
-    showToast({
-      message: 'გთხოვთ დაუშვათ ლოკაციის წვდომა ბრაუზერში',
-      type: 'info',
-      duration: 7000
-    });
-  } else if (typeof window.showToast === 'function') {
-    console.log('Calling window.showToast function');
-    window.showToast({
-      message: 'გთხოვთ დაუშვათ ლოკაციის წვდომა ბრაუზერში',
-      type: 'info',
-      duration: 7000
-    });
-  } else {
-    console.error('No toast function available - toast notification system not properly loaded');
-    alert('გთხოვთ დაუშვათ ლოკაციის წვდომა ბრაუზერში');
-  }
-
   // Log Safari-specific information if applicable
   if (isSafari()) {
     console.log('Safari browser detected in showMyLocation');
