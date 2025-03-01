@@ -1,15 +1,26 @@
 // Utility functions for the application
 
-// Function to detect if a string is a URL
-function isURL(str) {
-  if (str.includes('https://')) return true;
-
+// Function to check if a string contains a URL
+function containsURL(str) {
   if (!str || typeof str !== 'string') return false;
-  str = str.trim();
-  // Simple regex to match common URL patterns
-  const urlPattern =
-    /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i;
-  return urlPattern.test(str);
+
+  // First quick check for common protocol prefixes
+  if (str.includes('https://') || str.includes('http://')) return true;
+
+  // Pattern to find URLs within text
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return urlRegex.test(str);
+}
+
+// Function to extract URLs from text and format them as links
+function formatURLsInText(text) {
+  if (!text || typeof text !== 'string') return text;
+
+  // Pattern to find URLs within text
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  // Replace URLs with anchor tags
+  return text.replace(urlRegex, url => `<a href="${url}" target="_blank">${url}</a>`);
 }
 
 // Function to format values, converting URLs to links
@@ -18,12 +29,8 @@ function formatValue(value) {
     return '';
   }
 
-  // Check if value is a URL
-  if (isURL(value)) {
-    return `<a href="${value}" target="_blank" rel="noopener">${value}</a>`;
-  }
-
-  return value;
+  // Format URLs in text if present
+  return formatURLsInText(value);
 }
 
 // Function to toggle tabs panel

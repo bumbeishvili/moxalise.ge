@@ -293,7 +293,7 @@ function setupMarkers() {
       item.lat &&
       item.lon &&
       item['ზუსტი ადგილმდებარეობა']?.trim() &&
-      isURL(item['ზუსტი ადგილმდებარეობა'])
+      containsURL(item['ზუსტი ადგილმდებარეობა'])
     ) {
       const key = `${item.lat.toFixed(4)},${item.lon.toFixed(4)}`;
       if (!locationGroups[key]) {
@@ -1152,36 +1152,37 @@ function createTooltipHTML(feature, instanceId) {
 
   // Process all fields
   for (const key of keys) {
-    let value = data[key];
+    let rawValue = data[key];
 
     // Log for debugging
-    console.log(`Processing field: "${key}" with value type: ${typeof value}`);
-
-    // Convert URLs to links (not making assumptions, just basic URL detection)
-    if (value && typeof value === 'string' && isURL(value)) {
-      value = `<a href="${value}" target="_blank">${value}</a>`;
-    }
-    // Handle null or undefined
-    else if (value === null || value === undefined) {
-      value = '';
-    }
-    // Special handling for fields that might contain newlines
-    else if (typeof value === 'string' && value.includes('\n')) {
-      // Replace newlines with HTML line breaks for any field with newlines
-      value = value.replace(/\n/g, '<br>');
-      console.log(`Applied newline conversion for field: ${key}`);
-    }
+    console.log(`Processing field: "${key}" with value type: ${typeof rawValue}`);
 
     // Skip empty values (null, undefined, empty string, or whitespace-only)
-    if (value === '' || (typeof value === 'string' && value.trim() === '')) {
+    if (rawValue === null || rawValue === undefined ||
+      rawValue === '' || (typeof rawValue === 'string' && rawValue.trim() === '')) {
       console.log(`Skipping empty field: ${key}`);
       continue;
     }
 
-    // Limit key length to 20 characters
-    const displayKey = key.length > 20 ? key.substring(0, 20) + '...' : key;
+    // Process the raw value to get the display value
+    let displayValue = rawValue;
 
-    html += `<p><span class="info-label">${displayKey}:</span> <span class="info-value">${value}</span></p>`;
+    // Handle string values - process newlines and extract URLs
+    if (typeof rawValue === 'string') {
+      // Special handling for fields that might contain newlines
+      if (rawValue.includes('\n')) {
+        displayValue = rawValue.replace(/\n/g, '<br>');
+        console.log(`Applied newline conversion for field: ${key}`);
+      }
+
+      // Extract and format any URLs in the text
+      displayValue = formatURLsInText(displayValue);
+    }
+
+    // Remove text in parentheses
+    const displayKey = key.replace(/\([^)]*\)/g, '').trim();
+
+    html += `<p><span class="info-label">${displayKey}:</span> <span class="info-value">${displayValue}</span></p>`;
   }
 
   // Close the scrollable div
