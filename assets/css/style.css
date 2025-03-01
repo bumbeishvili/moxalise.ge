@@ -820,14 +820,15 @@ a:hover {
 
 /* Map legend styles */
 .map-legend {
-  position: absolute;
-  bottom: 80px;
-  left: 10px;
+  position: fixed;
+  bottom: 118px;
+  right: 517px;
+  left: auto;
   background: white;
   padding: 10px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  z-index: 100;
+  z-index: 1002;
   font-size: 14px;
   max-width: 220px;
   transition:
@@ -873,9 +874,9 @@ a:hover {
 }
 
 .legend-toggle {
-  position: absolute;
-  bottom: 30px;
-  left: 10px;
+  position: fixed;
+  bottom: 80px;
+  right: 520px;
   background: white;
   color: #333;
   border: none;
@@ -884,8 +885,8 @@ a:hover {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
   cursor: pointer;
   font-size: 13px;
-  z-index: 99;
-  display: none;
+  z-index: 1001;
+  display: block;
 }
 
 .legend-toggle:hover {
@@ -965,10 +966,19 @@ a:hover {
 
 @media (max-width: 768px) {
   .map-legend {
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 90%;
+    bottom: 120px;
+    right: 10px;
+    left: auto;
+    transform: none;
+    max-width: 80%;
+  }
+
+  .legend-toggle {
+    position: fixed;
+    bottom: 80px;
+    right: 10px;
+    font-size: 12px;
+    padding: 6px 10px;
   }
 }
 
@@ -994,6 +1004,27 @@ a:hover {
   justify-content: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
+}
+
+.location-button.pulsing {
+  animation: location-button-pulse 1.5s infinite;
+}
+
+@keyframes location-button-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+    transform: scale(1.1);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+    transform: scale(1);
+  }
 }
 
 .location-button svg {
@@ -2509,3 +2540,179 @@ a:hover {
 /* Live location marker styles - replaced with new volunteer marker styles */
 /* Removing old styles that could be causing conflicts */
 /* End of removed styles */
+
+/* Toast Notification System */
+/* Original toast styles */
+.app-toast {
+  position: fixed;
+  z-index: 3000;
+  min-width: 250px;
+  max-width: 90%;
+  padding: 0;
+  background-color: white;
+  color: #333;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+}
+
+.app-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.app-toast.top {
+  top: 20px;
+}
+
+.app-toast.bottom {
+  bottom: 20px;
+  transform: translateX(-50%) translateY(20px);
+}
+
+.app-toast.bottom.visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+}
+
+.toast-message {
+  font-size: 14px;
+  margin-right: 10px;
+  flex: 1;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #888;
+  cursor: pointer;
+  padding: 0 5px;
+  margin-left: 5px;
+}
+
+.toast-close:hover {
+  color: #333;
+}
+
+/* Toast types */
+.app-toast.info {
+  border-left: 4px solid #3498db;
+}
+
+.app-toast.success {
+  border-left: 4px solid #2ecc71;
+}
+
+.app-toast.warning {
+  border-left: 4px solid #f39c12;
+}
+
+.app-toast.error {
+  border-left: 4px solid #e74c3c;
+}
+
+/* Toast arrow pointer */
+.toast-arrow {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  transform: rotate(45deg);
+  z-index: -1;
+}
+
+.toast-arrow.top {
+  top: -8px;
+  box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toast-arrow.bottom {
+  bottom: -8px;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Location toast specific styles */
+.app-toast.location-toast {
+  text-align: center;
+  font-weight: 500;
+}
+
+/* New toast system styles */
+.toast-container {
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  padding: 10px 0;
+}
+
+.toast {
+  margin: 0.5rem;
+  padding: 12px 16px;
+  color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  min-width: 250px;
+  max-width: 90%;
+  pointer-events: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+}
+
+.toast-info {
+  background-color: #2196F3;
+}
+
+.toast-success {
+  background-color: #4CAF50;
+}
+
+.toast-warning {
+  background-color: #FFC107;
+  color: #333;
+}
+
+.toast-error {
+  background-color: #F44336;
+}
+
+/* Media queries for toast responsiveness */
+@media (max-width: 768px) {
+
+  .app-toast,
+  .toast {
+    min-width: 200px;
+    max-width: 95%;
+  }
+
+  .toast-message {
+    font-size: 13px;
+  }
+
+  .toast {
+    margin: 0.3rem;
+    padding: 10px 12px;
+  }
+}

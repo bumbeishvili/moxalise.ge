@@ -81,9 +81,11 @@ function toggleLegend() {
 
   legend.classList.toggle('hidden');
 
-  // Show/hide the toggle button based on legend visibility
+  // Update toggle button visibility
   if (legend.classList.contains('hidden')) {
-    toggleButton.style.display = 'none';
+    toggleButton.style.display = 'block';
+  } else {
+    toggleButton.style.display = 'block';
   }
 }
 
