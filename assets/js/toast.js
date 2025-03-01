@@ -33,11 +33,12 @@ function initToastContainer() {
       z-index: 9999;
       left: 0;
       right: 0;
-      top: 10px;
+      top: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       pointer-events: none;
+      width: 100%;
     `;
 
     // Add to document
@@ -90,46 +91,103 @@ function showToast(options) {
   // Create toast element
   const toast = document.createElement('div');
   toast.className = `toast toast-${settings.type}`;
+
+  // Make notification buttons pulsate when a toast is shown
+  document.querySelectorAll('[id^="notification-btn-"]').forEach(btn => {
+    btn.classList.add('pulsing');
+  });
   toast.style.cssText = `
     margin: 0.5rem;
-    padding: 12px 16px;
+    padding: 16px 20px;
     background-color: #333;
     color: white;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    min-width: 250px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    min-width: 280px;
     max-width: 90%;
     pointer-events: auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
     opacity: 0;
-    transform: translateY(-20px);
-    transition: all 0.3s ease;
+    transform: translateY(-20px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-left: 6px solid #333;
   `;
 
   // Set type-specific styles
   switch (settings.type) {
     case 'success':
-      toast.style.backgroundColor = '#4CAF50';
+      toast.style.backgroundColor = '#00b09b';
+      toast.style.borderLeftColor = '#00d1b2';
       break;
     case 'warning':
-      toast.style.backgroundColor = '#FFC107';
-      toast.style.color = '#333';
+      toast.style.backgroundColor = '#FF9800';
+      toast.style.borderLeftColor = '#FFC107';
+      toast.style.color = 'white';
       break;
     case 'error':
-      toast.style.backgroundColor = '#F44336';
+      toast.style.backgroundColor = '#e53935';
+      toast.style.borderLeftColor = '#f44336';
       break;
     default: // info
-      toast.style.backgroundColor = '#2196F3';
+      toast.style.backgroundColor = '#1976D2';
+      toast.style.borderLeftColor = '#2196F3';
   }
 
-  // Create message element
+  // Create message element with improved styling
   const messageEl = document.createElement('div');
   messageEl.innerHTML = settings.message;
   messageEl.className = 'toast-message';
-  toast.appendChild(messageEl);
+  messageEl.style.cssText = `
+    flex: 1;
+    line-height: 1.4;
+    letter-spacing: 0.2px;
+    word-break: break-word;
+    padding-right: 5px;
+  `;
+
+  // Add an icon based on toast type for better visual cues
+  const iconEl = document.createElement('div');
+  iconEl.className = 'toast-icon';
+  iconEl.style.cssText = `
+    margin-right: 12px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+  `;
+
+  // Set icon based on toast type
+  switch (settings.type) {
+    case 'success':
+      iconEl.innerHTML = '✓';
+      break;
+    case 'warning':
+      iconEl.innerHTML = '⚠';
+      break;
+    case 'error':
+      iconEl.innerHTML = '✕';
+      break;
+    default: // info
+      iconEl.innerHTML = 'ℹ';
+  }
+
+  // Create a container for icon and message
+  const contentEl = document.createElement('div');
+  contentEl.style.cssText = `
+    display: flex;
+    align-items: center;
+    flex: 1;
+  `;
+
+  contentEl.appendChild(iconEl);
+  contentEl.appendChild(messageEl);
+  toast.appendChild(contentEl);
 
   // Add close button if closable
   if (settings.closable) {
@@ -137,15 +195,31 @@ function showToast(options) {
     closeBtn.innerHTML = '×';
     closeBtn.className = 'toast-close';
     closeBtn.style.cssText = `
-      background: none;
+      background: rgba(255, 255, 255, 0.15);
       border: none;
       color: inherit;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
       cursor: pointer;
-      margin-left: 10px;
-      padding: 0 5px;
+      margin-left: 15px;
+      padding: 0 8px;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      line-height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
     `;
+    closeBtn.onmouseover = () => {
+      closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+      closeBtn.style.transform = 'scale(1.1)';
+    };
+    closeBtn.onmouseout = () => {
+      closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+      closeBtn.style.transform = 'scale(1)';
+    };
     closeBtn.addEventListener('click', () => {
       removeToast(toast);
     });
@@ -158,9 +232,11 @@ function showToast(options) {
   // Trigger reflow for animation
   void toast.offsetWidth;
 
-  // Show toast with animation
-  toast.style.opacity = '1';
-  toast.style.transform = 'translateY(0)';
+  // Show toast with enhanced animation
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0) scale(1)';
+  });
 
   // Set timeout to remove toast
   if (settings.duration > 0) {
@@ -177,9 +253,15 @@ function showToast(options) {
  * @param {HTMLElement} toast - The toast element to remove
  */
 function removeToast(toast) {
-  // Add exit animation
+  // Add exit animation with enhanced visual effect
   toast.style.opacity = '0';
-  toast.style.transform = 'translateY(-20px)';
+  toast.style.transform = 'translateY(-20px) scale(0.95)';
+  toast.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+
+  // Slight grow/shrink animation before disappearing
+  setTimeout(() => {
+    toast.style.transform = 'translateY(-20px) scale(0.9)';
+  }, 50);
 
   // Remove after animation completes
   setTimeout(() => {
@@ -189,8 +271,13 @@ function removeToast(toast) {
     if (toastContainer && toastContainer.children.length === 0) {
       toastContainer.remove();
       toastContainer = null;
+
+      // When all toasts are gone, remove pulsing from all notification buttons
+      document.querySelectorAll('[id^="notification-btn-"]').forEach(btn => {
+        btn.classList.remove('pulsing');
+      });
     }
-  }, 300);
+  }, 400); // Increased duration to account for two-phase animation
 }
 
 /**
@@ -305,8 +392,110 @@ function clearToast(toastId) {
   }
 }
 
+// Track if this is the first pin/polygon click since page load
+let isFirstClickOfSession = true;
+
+/**
+ * Counter for tracking pin/polygon clicks
+ * Shows the victim assistance reminder toast only once per 20 clicks
+ * Also shows on the first click of each page load
+ */
+function showVictimAssistanceToast() {
+  // Get current counter from localStorage, default to 0
+  let clickCounter = parseInt(localStorage.getItem('victimAssistanceClickCounter') || '0');
+
+  // Check if this is the first click of the current page session
+  const isFirstClick = isFirstClickOfSession;
+  isFirstClickOfSession = false;
+
+  // Increment counter
+  clickCounter++;
+
+  // Save updated counter to localStorage
+  localStorage.setItem('victimAssistanceClickCounter', clickCounter.toString());
+
+  // Show toast if:
+  // - It's the first click of this page session, OR
+  // - It's the first click ever, OR
+  // - It's a multiple of 20
+  if (isFirstClick || clickCounter === 1 || clickCounter % 20 === 0) {
+    console.log(`Showing victim assistance toast (click #${clickCounter}, first of session: ${isFirstClick})`);
+
+    // Add a delay to allow info-cards to become visible
+    console.log('Adding delay to wait for info-cards to be fully visible');
+
+    // Give UI time to update before checking for visible buttons
+    setTimeout(() => {
+      // Only target VISIBLE notification buttons by their ID pattern
+      const allNotificationButtons = document.querySelectorAll('[id^="notification-btn-"]');
+      const visibleButtons = Array.from(allNotificationButtons).filter(btn => {
+        // Check if button is visible (has a visible parent, isn't hidden, etc.)
+        const style = window.getComputedStyle(btn);
+        const rect = btn.getBoundingClientRect();
+        const isVisible = style.display !== 'none' &&
+          style.visibility !== 'hidden' &&
+          rect.width > 0 &&
+          rect.height > 0;
+
+        // Check if button is within a visible container/card that's currently expanded
+        const card = btn.closest('.card');
+        const isInExpandedCard = card ? card.classList.contains('expanded') : true;
+
+        // Also check if button is within an info-card that's visible
+        const infoCard = btn.closest('.info-card');
+        const isInVisibleInfoCard = infoCard ?
+          window.getComputedStyle(infoCard).display !== 'none' : true;
+
+        return isVisible && isInExpandedCard && isInVisibleInfoCard;
+      });
+
+      console.log(`Found ${allNotificationButtons.length} total notification buttons, ${visibleButtons.length} are currently visible after UI update`);
+
+      // Only add pulsing class to visible buttons
+      visibleButtons.forEach(btn => {
+        btn.classList.add('pulsing');
+        console.log('Added pulsing class to visible button:', btn.id);
+      });
+    }, 300); // 300ms delay to wait for UI updates
+
+    const toast = showToast({
+      message: 'გთხოვთ, დაზარალებულთან მისვლის შემდეგ, განაახლოთ ინფორმაცია!',
+      type: 'warning', // Changed to warning for better visibility
+      duration: 7000,  // Increased duration for better visibility
+      closable: true
+    });
+
+    // When toast is closed or expires, remove pulsing class
+    if (toast) {
+      const removePulsing = () => {
+        // Only remove pulsing class from buttons that have it
+        const pulsatingButtons = document.querySelectorAll('[id^="notification-btn-"].pulsing');
+
+        pulsatingButtons.forEach(btn => {
+          btn.classList.remove('pulsing');
+          console.log('Removed pulsing class from button:', btn.id);
+        });
+      };
+
+      // Remove pulsing after toast duration + animation time
+      setTimeout(removePulsing, 7000 + 400);
+
+      // For closable toasts, also remove pulsing when closed manually
+      if (toast.querySelector('.toast-close')) {
+        toast.querySelector('.toast-close').addEventListener('click', removePulsing);
+      }
+    }
+
+    return toast;
+  }
+
+  console.log(`Skipping victim assistance toast (click #${clickCounter}, will show again at click #${Math.ceil(clickCounter / 20) * 20})`);
+  return null;
+}
+
 // Make functions globally available
 window.showToast = showToast;
 window.removeToast = removeToast;
 window.showLocationAccessToast = showLocationAccessToast;
 window.clearToast = clearToast;
+window.showVictimAssistanceToast = showVictimAssistanceToast;

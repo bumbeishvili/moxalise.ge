@@ -392,6 +392,9 @@ function setupMarkers() {
         const tooltipContent = document.createElement('div');
         tooltipContent.innerHTML = createTooltipHTML(feature, index);
 
+        // Show toast notification when pin is clicked (limited to once per 20 clicks)
+        showVictimAssistanceToast();
+
         // Create or update marker element to attach tooltip to
         let markerEl = document.getElementById(`marker-${index}`);
         if (!markerEl) {
@@ -573,6 +576,9 @@ function addMapEventHandlers() {
 
         // Create tooltip after highlighting
         createTooltipForFeature(feature, id, e.point);
+
+        // Show toast notification when pin is opened (limited to once per 20 clicks)
+        showVictimAssistanceToast();
       }
     }
   });
