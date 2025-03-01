@@ -424,11 +424,12 @@
   <div id="phone-input-modal" class="modal">
     <div class="modal-content phone-input-modal-content">
       <div class="modal-header">
-        <h2> შეავსეთ მხოლოდ ადგილზე მყოფმა მოხალისეებმა</h2>
+        <h2>ლოკაციის გაზიარება</h2>
         <span class="modal-close" onclick="closePhoneInputModal()">&times;</span>
       </div>
       <div class="modal-body phone-input-modal-body">
-        <p>მხოლოდ აქტიურ ზონაში მყოფმა მოხალისეებმა გაგვიზიარეთ თქვენი ლოკაცია & ნომერი კოორდინაციისთვის</p>
+        <p id="phone-modal-description">შეიყვანეთ თქვენი მობილურის ნომერი ლოკაციის გასაზიარებლად. თუ უკვე გაზიარებული
+          გაქვთ, შეგიძლიათ შეცვალოთ ნომერი.</p>
 
         <!-- Added status message container -->
         <div id="location-status-message" class="location-status-message" style="display: none;">
@@ -441,7 +442,7 @@
 
         <form id="phone-input-form">
           <div class="form-group">
-            <label for="phone-input">ჩაწერეთ თქვენი მობილურის ნომერი</label>
+            <label for="phone-input">მობილურის ნომერი</label>
             <input type="tel" id="phone-input" placeholder="5XXXXXXXX" required pattern="5[0-9]{8}" />
             <small>მაგ.: 555123456</small>
           </div>

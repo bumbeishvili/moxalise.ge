@@ -454,6 +454,26 @@ function openPhoneInputModal() {
     return;
   }
 
+  console.log('Phone modal element found:', modal);
+
+  // Make the modal visible - use both display and active class
+  modal.style.display = 'block';
+
+  // Remove any inline styles that might be preventing display
+  modal.style.cssText = 'display: block !important; opacity: 1 !important;';
+
+  // Add active class
+  modal.classList.add('active');
+
+  // Prevent background scrolling
+  document.body.style.overflow = 'hidden';
+
+  console.log('Modal display and class set:', {
+    display: modal.style.display,
+    classList: Array.from(modal.classList),
+    cssText: modal.style.cssText
+  });
+
   // Reset the form
   const form = modal.querySelector('form');
   if (form) {
@@ -463,9 +483,51 @@ function openPhoneInputModal() {
   // Check for a saved phone number and pre-fill the input if available
   const savedPhone = localStorage.getItem('lastPhoneNumber');
   const phoneInput = document.getElementById('phone-input');
+  const modalDescription = document.getElementById('phone-modal-description');
+
   if (savedPhone && phoneInput) {
     console.log('Pre-filling phone input with saved number:', savedPhone);
     phoneInput.value = savedPhone;
+
+    // Update the description text to indicate that the user is changing their number
+    if (modalDescription) {
+      modalDescription.textContent = 'თქვენი ნომერი უკვე შენახულია. შეგიძლიათ შეცვალოთ ან გააგრძელოთ იგივე ნომრით.';
+    }
+
+    // Also update the submit button text if the watchPositionId is null (meaning tracking is not active)
+    const submitBtn = document.querySelector('.submit-btn');
+    if (submitBtn) {
+      // Try to get watchPositionId status from the tracking.js module
+      // Since it's defined in another file, check if it's exposed globally first
+      let isTrackingActive = false;
+
+      // Try different ways to check if tracking is active
+      if (typeof watchPositionId !== 'undefined') {
+        isTrackingActive = watchPositionId !== null;
+      } else if (typeof window.watchPositionId !== 'undefined') {
+        isTrackingActive = window.watchPositionId !== null;
+      }
+
+      if (!isTrackingActive) {
+        submitBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            style="margin-right: 8px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+            <line x1="12" y1="2" x2="12" y2="4"></line>
+            <line x1="12" y1="20" x2="12" y2="22"></line>
+            <line x1="22" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="12" x2="2" y2="12"></line>
+          </svg>
+          გაზიარება`;
+      }
+    }
+  } else {
+    // Display default text for new users
+    if (modalDescription) {
+      modalDescription.textContent = 'შეიყვანეთ თქვენი მობილურის ნომერი ლოკაციის გასაზიარებლად.';
+    }
   }
 
   // Hide any status message and show the form
@@ -514,8 +576,14 @@ function closePhoneInputModal() {
   const modal = document.getElementById('phone-input-modal');
   if (modal) {
     console.log('Hiding phone-input-modal');
-    modal.style.cssText = 'display: none !important;';
+
+    // First remove the active class
     modal.classList.remove('active');
+
+    // Then hide the modal using standard display property
+    modal.style.display = 'none';
+
+    console.log('Modal display set to none:', modal);
 
     // Reset the form and hide status message when closing
     setTimeout(() => {

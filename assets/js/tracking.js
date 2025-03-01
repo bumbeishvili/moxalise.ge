@@ -7,6 +7,8 @@ let lastPhoneNumber = null;
 
 // Add watchPosition ID variable
 let watchPositionId = null;
+// Expose watchPositionId to window for access from other files
+window.watchPositionId = null;
 
 // Session flag to track first update after page load
 let isFirstUpdateAfterPageLoad = true;
@@ -146,21 +148,14 @@ function autoStartLocationSharing() {
   // Reset the first update flag to ensure we send the initial update
   isFirstUpdateAfterPageLoad = true;
 
-  // If we've already attempted to start tracking once, don't do it again
-  // unless watchPositionId is null (meaning tracking was stopped)
-  if (window.locationTrackingAttempted && watchPositionId !== null) {
-    console.log('Location tracking already attempted, not starting again');
+  // If tracking is already active, don't start again
+  if (watchPositionId !== null) {
+    console.log('Location tracking already active with watchPositionId:', watchPositionId);
     return;
   }
 
   // Set the flag to indicate we've attempted to start tracking
   window.locationTrackingAttempted = true;
-
-  // Don't start if already tracking
-  if (watchPositionId !== null) {
-    console.log('Location tracking already active with watchPositionId:', watchPositionId);
-    return;
-  }
 
   // Get the saved phone number
   const savedPhone = localStorage.getItem('lastPhoneNumber');
@@ -245,11 +240,20 @@ function autoStartLocationSharing() {
                   handleSafariGeolocationError(error);
                 } else {
                   console.error('watchPosition error:', error.code, error.message);
+                  if (error.code === 1) { // PERMISSION_DENIED
+                    alert('გთხოვთ ნება დართოთ ლოკაციის გაზიარებას');
+                  } else if (error.code === 2) { // POSITION_UNAVAILABLE
+                    alert('თქვენი ლოკაციის განსაზღვრა ვერ ხერხდება. გთხოვთ სცადოთ თავიდან.');
+                  } else if (error.code === 3) { // TIMEOUT
+                    alert('ლოკაციის განსაზღვრის მოთხოვნამ დიდხანს გასტანა. გთხოვთ სცადოთ თავიდან.');
+                  }
                 }
               },
               geolocationOptions
             );
             console.log('Auto-start watchPosition set up with ID:', watchPositionId);
+            // Update window variable for access from other files
+            window.watchPositionId = watchPositionId;
 
             // Display a notification to user that tracking is active
 
@@ -296,6 +300,11 @@ function placeUserMarker(lat, lng) {
  */
 function showMyLocation() {
   console.log('showMyLocation function called from tracking.js');
+  console.log('Current tracking state:', {
+    watchPositionId: watchPositionId,
+    windowWatchPositionId: window.watchPositionId,
+    trackingAttempted: window.locationTrackingAttempted
+  });
 
   // Log Safari-specific information if applicable
   if (isSafari()) {
@@ -313,10 +322,82 @@ function showMyLocation() {
     }
   }
 
-  // Skip directly to opening the phone modal
-  console.log('Opening phone input modal first');
+  // Check location tracking status - use both local and window variables to be safe
+  const isTrackingActive = (watchPositionId !== null) || (window.watchPositionId !== null);
+
+  // If location tracking is already active, just open the phone modal to allow changing the number
+  if (isTrackingActive) {
+    console.log('Location tracking active, opening modal to change number and stopping current tracking');
+
+    // Stop current tracking first
+    stopLocationSharing();
+
+    // Open the phone input modal
+    setTimeout(() => {
+      console.log('Opening phone input modal to change phone number');
+      if (typeof openPhoneInputModal === 'function') {
+        openPhoneInputModal();
+
+        // Add a delayed check to verify the modal is visible
+        setTimeout(() => {
+          const modal = document.getElementById('phone-input-modal');
+          if (modal) {
+            console.log('Modal visibility check (change number):', {
+              display: modal.style.display,
+              computedDisplay: window.getComputedStyle(modal).display,
+              classList: Array.from(modal.classList),
+              isActive: modal.classList.contains('active'),
+              zIndex: window.getComputedStyle(modal).zIndex,
+              isVisible: modal.offsetWidth > 0 && modal.offsetHeight > 0
+            });
+
+            // Force ensure visibility if needed
+            if (window.getComputedStyle(modal).display === 'none' || !modal.classList.contains('active')) {
+              console.log('Modal not properly visible, forcing display');
+              modal.style.cssText = 'display: block !important; opacity: 1 !important; visibility: visible !important;';
+              modal.classList.add('active');
+            }
+          } else {
+            console.error('Modal element not found in DOM after openPhoneInputModal call');
+          }
+        }, 500);
+      } else {
+        console.error('openPhoneInputModal function not found!');
+        alert('Error: Could not open phone input form. Please refresh the page and try again.');
+      }
+    }, 300);
+
+    return;
+  }
+
+  // If not tracking, open the phone modal directly
+  console.log('No active tracking, opening phone input modal first');
   if (typeof openPhoneInputModal === 'function') {
     openPhoneInputModal();
+
+    // Add a delayed check to verify the modal is visible
+    setTimeout(() => {
+      const modal = document.getElementById('phone-input-modal');
+      if (modal) {
+        console.log('Modal visibility check:', {
+          display: modal.style.display,
+          computedDisplay: window.getComputedStyle(modal).display,
+          classList: Array.from(modal.classList),
+          isActive: modal.classList.contains('active'),
+          zIndex: window.getComputedStyle(modal).zIndex,
+          isVisible: modal.offsetWidth > 0 && modal.offsetHeight > 0
+        });
+
+        // Force ensure visibility if needed
+        if (window.getComputedStyle(modal).display === 'none' || !modal.classList.contains('active')) {
+          console.log('Modal not properly visible, forcing display');
+          modal.style.cssText = 'display: block !important; opacity: 1 !important; visibility: visible !important;';
+          modal.classList.add('active');
+        }
+      } else {
+        console.error('Modal element not found in DOM after openPhoneInputModal call');
+      }
+    }, 500);
   } else {
     console.error('openPhoneInputModal function not found!');
     alert('Error: Could not open phone input form. Please refresh the page and try again.');
@@ -1036,6 +1117,11 @@ function stopLocationSharing() {
     console.log('Clearing watchPosition with ID:', watchPositionId);
     navigator.geolocation.clearWatch(watchPositionId);
     watchPositionId = null;
+    window.watchPositionId = null; // Also update window variable
+
+    // Reset the tracking attempted flag so user can restart tracking if needed
+    window.locationTrackingAttempted = false;
+    console.log('Reset locationTrackingAttempted flag to allow future sharing');
   }
 
   // For backward compatibility, also clear interval if it exists

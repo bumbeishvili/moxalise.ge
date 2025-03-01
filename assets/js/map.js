@@ -1257,13 +1257,19 @@ function setupVolunteerMarkers() {
     return;
   }
 
-  console.log(`Creating ${volunteerData.length} volunteer markers`);
-
   // Get current time for age calculations
   const now = new Date();
 
+  // Filter out volunteer locations older than 6 hours
+  const recentVolunteers = volunteerData.filter(volunteer => {
+    const ageInMinutes = (now - volunteer.timestamp) / (1000 * 60);
+    return ageInMinutes <= MAX_VOLUNTEER_AGE_MINUTES;
+  });
+
+  console.log(`Creating ${recentVolunteers.length} volunteer markers (filtered from ${volunteerData.length} total)`);
+
   // Create a marker for each volunteer location
-  volunteerData.forEach((volunteer, index) => {
+  recentVolunteers.forEach((volunteer, index) => {
     // Ensure coordinates are valid numbers
     const lat = parseFloat(volunteer.lat);
     const lon = parseFloat(volunteer.lon);
@@ -1374,23 +1380,41 @@ function setupVolunteerMarkers() {
 
 // Function to determine volunteer marker style based on age
 function getVolunteerMarkerStyle(ageInMinutes) {
+  // Calculate relative age as a percentage of the maximum age
+  const agePercentage = ageInMinutes / MAX_VOLUNTEER_AGE_MINUTES;
+
   // Recent updates (< 15 minutes): Blue and pulsing
   if (ageInMinutes < 15) {
-    return { color: '#4285F4', shouldPulse: true }; // Google Maps blue
+    return { color: '#4285F4', shouldPulse: true }; // Google Maps blue, pulsing
   }
-  // Between 0-2 hours: Blue gradually becoming gray
-  else if (ageInMinutes < 120) {
-    // Calculate color between blue and gray based on age
-    const blueComponent = Math.max(30, Math.floor(30 + (200 - ageInMinutes) / 120 * 220));
-    const grayComponent = Math.min(128, Math.floor(128 + ageInMinutes / 120 * 70));
+  // Between 15-60 minutes: Blue, no pulse
+  else if (ageInMinutes < 60) {
+    return { color: '#4285F4', shouldPulse: false }; // Google Maps blue, no pulse
+  }
+  // Between 1-3 hours: Blue gradually becoming light blue
+  else if (ageInMinutes < MAX_VOLUNTEER_AGE_MINUTES / 2) { // Half of max age (3 hours)
+    // Calculate color between blue and light blue based on age
+    const blueValue = Math.max(66, Math.floor(66 + (1 - (ageInMinutes / (MAX_VOLUNTEER_AGE_MINUTES / 2))) * 189));
     return {
-      color: `rgb(${grayComponent}, ${grayComponent}, ${blueComponent})`,
+      color: `rgb(66, ${blueValue}, 244)`,
       shouldPulse: false
     };
   }
-  // Older than 2 hours: Gray
+  // Between 3-6 hours: Light blue to gray
+  else if (ageInMinutes < MAX_VOLUNTEER_AGE_MINUTES) {
+    // Calculate color between light blue and gray based on age
+    const relativeAge = (ageInMinutes - (MAX_VOLUNTEER_AGE_MINUTES / 2)) / (MAX_VOLUNTEER_AGE_MINUTES / 2);
+    const blueComponent = Math.max(128, Math.floor(128 + (1 - relativeAge) * 127));
+    const greenComponent = Math.min(180, Math.floor(120 + relativeAge * 60));
+    const redComponent = Math.min(158, Math.floor(98 + relativeAge * 60));
+    return {
+      color: `rgb(${redComponent}, ${greenComponent}, ${blueComponent})`,
+      shouldPulse: false
+    };
+  }
+  // This case should never be reached with our filter, but keeping as a fallback
   else {
-    return { color: '#9E9E9E', shouldPulse: false };
+    return { color: '#9E9E9E', shouldPulse: false }; // Gray for older markers
   }
 }
 
@@ -1529,4 +1553,64 @@ function startVolunteerMarkersRefresh() {
         setupVolunteerMarkers();
       });
   }, 60000); // Update every minute
+}
+
+// Define the max age constant globally so it can be used in multiple functions
+const MAX_VOLUNTEER_AGE_MINUTES = 360; // 6 hours
+
+// Function to process volunteer location data
+function processVolunteerData(data) {
+  if (!data || !data.length) {
+    console.log('No volunteer data to process');
+    volunteerData = [];
+    return;
+  }
+
+  console.log('Processing volunteer location data');
+
+  // Process each volunteer location entry
+  volunteerData = data.map(entry => {
+    // Handle both API JSON format and CSV format
+    // API format has data directly in the expected format
+    // CSV format has strings that need to be parsed
+
+    // Parse timestamp to Date object (handle both string and Date object)
+    let timestamp;
+    if (typeof entry.timestamp === 'string') {
+      timestamp = new Date(entry.timestamp);
+    } else if (entry.timestamp instanceof Date) {
+      timestamp = entry.timestamp;
+    } else if (entry.created_at) { // API might use different field name
+      timestamp = new Date(entry.created_at);
+    } else {
+      timestamp = new Date(); // Fallback to current date if no timestamp
+    }
+
+    return {
+      timestamp: timestamp,
+      lat: parseFloat(entry.lat || entry.latitude || 0),
+      lon: parseFloat(entry.lon || entry.longitude || 0),
+      accuracy: parseFloat(entry.accuracy || 0),
+      altitude: parseFloat(entry.altitude || 0),
+      altitude_accuracy: parseFloat(entry.altitude_accuracy || 0),
+      heading: parseFloat(entry.heading || 0),
+      speed: parseFloat(entry.speed || 0),
+      phone_number: entry.phone_number || entry.phoneNumber || '',
+      message: entry.message || '',
+      user_agent: entry.user_agent || entry.userAgent || '',
+      ip_hash: entry.ip_hash || entry.ipHash || ''
+    };
+  });
+
+  // Filter out entries with invalid coordinates
+  volunteerData = volunteerData.filter(entry =>
+    !isNaN(entry.lat) && !isNaN(entry.lon) &&
+    entry.lat !== null && entry.lon !== null &&
+    entry.lat !== 0 && entry.lon !== 0
+  );
+
+  console.log(`Processed ${volunteerData.length} valid volunteer location entries`);
+
+  // Expose the function to the global scope
+  window.processVolunteerData = processVolunteerData;
 }
