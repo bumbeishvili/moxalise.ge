@@ -689,7 +689,7 @@ function applyFilters() {
     if (
       !item.lat ||
       !item.lon ||
-      (item['ზუსტი ადგილმდებარეობა']?.trim() && isURL(item['ზუსტი ადგილმდებარეობა']))
+      (item['ზუსტი ადგილმდებარეობა']?.trim() && containsURL(item['ზუსტი ადგილმდებარეობა']))
     ) {
       return false;
     }
@@ -850,7 +850,7 @@ function updateFeatures(filtered = false) {
     item =>
       item.lat &&
       item.lon &&
-      (!item['ზუსტი ადგილმდებარეობა']?.trim() || !isURL(item['ზუსტი ადგილმდებარეობა']))
+      (!item['ზუსტი ადგილმდებარეობა']?.trim() || !containsURL(item['ზუსტი ადგილმდებარეობა']))
   ).length;
 
   // First, filter the data based on criteria
@@ -863,7 +863,7 @@ function updateFeatures(filtered = false) {
       if (
         !item.lat ||
         !item.lon ||
-        (item['ზუსტი ადგილმდებარეობა']?.trim() && isURL(item['ზუსტი ადგილმდებარეობა']))
+        (item['ზუსტი ადგილმდებარეობა']?.trim() && containsURL(item['ზუსტი ადგილმდებარეობა']))
       ) {
         return false;
       }
@@ -937,7 +937,7 @@ function updateFeatures(filtered = false) {
       item =>
         item.lat &&
         item.lon &&
-        (!item['ზუსტი ადგილმდებარეობა']?.trim() || !isURL(item['ზუსტი ადგილმდებარეობა']))
+        (!item['ზუსტი ადგილმდებარეობა']?.trim() || !containsURL(item['ზუსტი ადგილმდებარეობა']))
     );
   }
 

@@ -18,18 +18,23 @@ console.log('app.js loaded');
  * @return {string} - The formatted value
  */
 function formatValue(value) {
-  // If the value is a URL, make it a link
-  if (typeof value === 'string' && typeof isURL === 'function' && isURL(value)) {
-    return `<a href="${value}" target="_blank">${value}</a>`;
+  // If value is null or undefined, return empty string
+  if (value === null || value === undefined) {
+    return '';
   }
 
-  // If value is a string but contains newlines, replace with HTML line breaks
-  if (typeof value === 'string' && value.includes('\n')) {
-    return value.replace(/\n/g, '<br>');
+  // Convert to string
+  const strValue = String(value);
+
+  // Format URLs in text if present
+  let formattedValue = typeof formatURLsInText === 'function' ? formatURLsInText(strValue) : strValue;
+
+  // If value contains newlines, replace with HTML line breaks
+  if (formattedValue.includes('\n')) {
+    formattedValue = formattedValue.replace(/\n/g, '<br>');
   }
 
-  // For other values, just convert to string
-  return String(value);
+  return formattedValue;
 }
 
 // Initialize the application when the DOM is fully loaded
