@@ -1179,8 +1179,8 @@ function createTooltipHTML(feature, instanceId) {
       displayValue = formatURLsInText(displayValue);
     }
 
-    // Limit key length to 20 characters
-    const displayKey = key.length > 20 ? key.substring(0, 20) + '...' : key;
+    // Remove text in parentheses
+    const displayKey = key.replace(/\([^)]*\)/g, '').trim();
 
     html += `<p><span class="info-label">${displayKey}:</span> <span class="info-value">${displayValue}</span></p>`;
   }

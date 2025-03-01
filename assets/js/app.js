@@ -497,7 +497,9 @@ function createSidebarCards() {
           ) {
             return '';
           }
-          return `<p><strong>${key}:</strong> ${formatValue(value)}</p>`;
+          // Remove text in parentheses from the key
+          const cleanKey = key.replace(/\([^)]*\)/g, '').trim();
+          return `<p><strong>${cleanKey}:</strong> ${formatValue(value)}</p>`;
         })
         .join('')}
                 ${`
