@@ -451,10 +451,25 @@ function showVictimAssistanceToast() {
 
       console.log(`Found ${allNotificationButtons.length} total notification buttons, ${visibleButtons.length} are currently visible after UI update`);
 
-      // Only add pulsing class to visible buttons
+      // Only add pulsing class to visible buttons and add click handler to remove pulsing
       visibleButtons.forEach(btn => {
         btn.classList.add('pulsing');
         console.log('Added pulsing class to visible button:', btn.id);
+
+        // Add a one-time click event listener to remove pulsing effect when clicked
+        // Use a variable to track if listener is already added to prevent duplicates
+        if (!btn._hasPulseClickListener) {
+          btn._hasPulseClickListener = true;
+          btn.addEventListener('click', function removePulsingOnClick() {
+            // Remove the pulsing class
+            this.classList.remove('pulsing');
+            console.log('Removed pulsing class on button click:', this.id);
+
+            // Remove the event listener to prevent memory leaks
+            this.removeEventListener('click', removePulsingOnClick);
+            btn._hasPulseClickListener = false;
+          });
+        }
       });
     }, 300); // 300ms delay to wait for UI updates
 
