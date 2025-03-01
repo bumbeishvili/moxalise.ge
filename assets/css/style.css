@@ -2541,6 +2541,48 @@ a:hover {
 /* Removing old styles that could be causing conflicts */
 /* End of removed styles */
 
+/* Arrow pointing to location button */
+.location-button-arrow {
+  position: fixed;
+  bottom: 65px;
+  /* Positioned above the location button */
+  left: 242px;
+  /* Centered above the location button */
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 21px solid #e74c3c;
+  /* Red downward-pointing arrow */
+  z-index: 1001;
+  animation: arrow-bounce 1.5s infinite;
+  pointer-events: none;
+  /* Make sure it doesn't interfere with clicks */
+  display: none;
+  /* Hidden by default */
+}
+
+@keyframes arrow-bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+  .location-button-arrow {
+    bottom: 65px;
+    left: 17px;
+    /* Adjusted for mobile positioning */
+  }
+}
+
 /* Toast Notification System */
 /* Original toast styles */
 .app-toast {
