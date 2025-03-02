@@ -2065,6 +2065,8 @@ a:hover {
   margin-bottom: 10px;
   padding-bottom: 5px;
   border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
 }
 
 .id-label {
@@ -2077,6 +2079,28 @@ a:hover {
 .id-value {
   font-weight: bold;
   display: inline-block;
+  margin-right: 5px;
+}
+
+/* Copy button styles */
+.copy-id-btn {
+  background: none;
+  border: none;
+  color: #777;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.copy-id-btn:hover {
+  background-color: #f1f1f1;
+  color: #333;
+}
+
+.copy-id-btn.copied {
+  color: #2ecc71;
+  background-color: rgba(46, 204, 113, 0.1);
 }
 
 .card .id-field {

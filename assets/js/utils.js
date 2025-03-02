@@ -1,5 +1,19 @@
 // Utility functions for the application
 
+// Function to copy text to clipboard
+async function copyToClipboard(text) {
+  if (!text) return false;
+
+  try {
+    await navigator.clipboard.writeText(text);
+
+    return true;
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+    return false;
+  }
+}
+
 // Function to check if a string contains a URL
 function containsURL(str) {
   if (!str || typeof str !== 'string') return false;
@@ -101,6 +115,42 @@ function toggleLegend() {
   } else {
     toggleButton.style.display = 'block';
   }
+}
+
+// Function to generate a shareable URL for an ID
+function generateShareableUrl(id) {
+  if (!id) return '';
+
+  // Create a URL based on the current location
+  const url = new URL(window.location.href);
+
+  // Set the ID parameter
+  url.searchParams.set('id', id);
+
+  // Return the full URL as a string
+  return url.toString();
+}
+
+// Function to handle copying ID to clipboard with visual feedback
+function handleIdCopy(event, id) {
+  event.stopPropagation();
+
+  if (!id) return;
+
+  const button = event.currentTarget;
+  const shareableUrl = generateShareableUrl(id);
+
+  copyToClipboard(shareableUrl).then(success => {
+    if (success) {
+      // Visual feedback on button
+      button.classList.add('copied');
+
+      // Reset button after delay
+      setTimeout(() => {
+        button.classList.remove('copied');
+      }, 1500);
+    }
+  });
 }
 
 // Function to toggle panel
