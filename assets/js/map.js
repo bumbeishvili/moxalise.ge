@@ -1169,16 +1169,15 @@ function createTooltipHTML(feature, instanceId) {
 
     // Handle string values - process newlines and extract URLs
     if (typeof rawValue === 'string') {
-      // Special handling for fields that might contain newlines
+      // First, extract and format any URLs in the text
+      displayValue = formatURLsInText(rawValue);
+
+      // Then, handle newlines (check if the original value has newlines)
       if (rawValue.includes('\n')) {
-        displayValue = rawValue.replace(/\n/g, '<br>');
+        displayValue = displayValue.replace(/\n/g, '<br>');
         console.log(`Applied newline conversion for field: ${key}`);
       }
-
-      // Extract and format any URLs in the text
-      displayValue = formatURLsInText(displayValue);
     }
-
     // Remove text in parentheses
     const displayKey = key.replace(/\([^)]*\)/g, '').trim();
 

@@ -20,7 +20,14 @@ function formatURLsInText(text) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
 
   // Replace URLs with anchor tags
-  return text.replace(urlRegex, url => `<a href="${url}" target="_blank">${url}</a>`);
+  return text.replace(urlRegex, url => {
+    // Check if it's a Google Maps link
+    if (url.includes('google.com/maps') || url.includes('maps.app.goo.gl')) {
+      return `<a href="${url}" target="_blank">Google Maps</a>`;
+    }
+    // Otherwise, use the original URL as the link text
+    return `<a href="${url}" target="_blank">${url}</a>`;
+  });
 }
 
 // Function to format values, converting URLs to links
