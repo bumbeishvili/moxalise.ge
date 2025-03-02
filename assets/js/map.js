@@ -1499,19 +1499,35 @@ function createVolunteerTooltip(marker, volunteer, ageInMinutes) {
   // Format the age for display
   const ageText = formatTimeAgo(ageInMinutes);
 
-  // Create tooltip content
   const tooltipContent = `
-    <div class="volunteer-tooltip">
-      <div class="tooltip-header">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
-        Live Volunteer Location
+    <div class="volunteer-tooltip" style="min-width: 280px;">
+      <div class="tooltip-header" style="padding: 8px; line-height: 1.5;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+        <span style="vertical-align: middle;">მოხალისის მდებარეობა</span>
       </div>
-      <div class="tooltip-content">
-        <p><strong>Updated:</strong> ${ageText}</p>
-        <p><strong>Phone:</strong> ${volunteer.phone_number || 'N/A'}</p>
-        ${volunteer.altitude ? `<p><strong>Altitude:</strong> ${Math.round(volunteer.altitude)}m</p>` : ''}
-        ${volunteer.heading ? `<p><strong>Direction:</strong> ${formatHeading(volunteer.heading)}</p>` : ''}
-        ${volunteer.speed ? `<p><strong>Speed:</strong> ${formatSpeed(volunteer.speed)}</p>` : ''}
+      <div class="tooltip-content" style="padding: 10px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center;">
+          <div style="text-align: right;"><strong>განახლებულია:</strong></div>
+          <div>${ageText}</div>
+          
+          <div style="text-align: right;"><strong>ტელეფონი:</strong></div>
+          <div>${volunteer.phone_number || 'N/A'}</div>
+          
+          ${volunteer.altitude ? `
+          <div style="text-align: right;"><strong>სიმაღლე:</strong></div>
+          <div>${Math.round(volunteer.altitude)}m</div>
+          ` : ''}
+          
+          ${volunteer.heading ? `
+          <div style="text-align: right;"><strong>მიმართულება:</strong></div>
+          <div>${formatHeading(volunteer.heading)}</div>
+          ` : ''}
+          
+          ${volunteer.speed ? `
+          <div style="text-align: right;"><strong>სიჩქარე:</strong></div>
+          <div>${formatSpeed(volunteer.speed)}</div>
+          ` : ''}
+        </div>
       </div>
     </div>
   `;
@@ -1536,18 +1552,18 @@ function createVolunteerTooltip(marker, volunteer, ageInMinutes) {
   }
 }
 
-// Helper function to format time ago text
+// Helper function to format time ago text in Georgian
 function formatTimeAgo(minutes) {
   if (minutes < 1) {
-    return 'Just now';
+    return 'ახლახანს';
   } else if (minutes < 60) {
-    return `${Math.floor(minutes)} minutes ago`;
+    return `${Math.floor(minutes)} წუთის წინ`;
   } else if (minutes < 1440) {
     const hours = Math.floor(minutes / 60);
-    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    return `${hours} საათის წინ`;
   } else {
     const days = Math.floor(minutes / 1440);
-    return `${days} day${days > 1 ? 's' : ''} ago`;
+    return `${days} დღის წინ`;
   }
 }
 
