@@ -769,6 +769,22 @@ function addMapEventHandlers() {
 
       // Clear URL parameter when clicking elsewhere on the map
       clearUrlParam('id');
+
+      // Clear the search input when clicking elsewhere on the map
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput && searchInput.value) {
+        searchInput.value = '';
+
+        // Trigger input event to refresh the search results
+        const inputEvent = new Event('input', { bubbles: true });
+        searchInput.dispatchEvent(inputEvent);
+
+        // Hide the clear search button if it exists
+        const clearSearchBtn = document.getElementById('clearSearch');
+        if (clearSearchBtn) {
+          clearSearchBtn.style.display = 'none';
+        }
+      }
     }
   });
 }

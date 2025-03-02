@@ -110,6 +110,24 @@ function navigateToItemById(id) {
 
   console.log(`Found item with ID ${id} at index ${index}`, item);
 
+  // Populate the search input with the ID
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.value = id;
+
+    // Trigger input event to activate any search-related logic
+    const inputEvent = new Event('input', { bubbles: true });
+    searchInput.dispatchEvent(inputEvent);
+
+    // Show the clear search button if it exists
+    const clearSearchBtn = document.getElementById('clearSearch');
+    if (clearSearchBtn) {
+      clearSearchBtn.style.display = 'block';
+    }
+
+    console.log(`Set search input value to: ${id}`);
+  }
+
   // Find the corresponding card and highlight it
   const card = document.querySelector(`.card[data-index="${index}"]`);
   if (card) {
