@@ -1174,8 +1174,19 @@ function createTooltipHTML(feature, instanceId) {
                 <button class="close-button" onclick="closeTooltip('${instanceId}')">✕</button>
                 <div class="info-card-scrollable">`;
 
-  // Add ID at the top of the tooltip using the CSS classes
-  html += `<p class="id-field"><span class="id-label">ID:</span> <span class="id-value">${data.id || ''}</span></p>`;
+  // Add ID at the top of the tooltip using the CSS classes with copy button
+  html += `<p class="id-field">
+    <span class="id-label">ID:</span>
+    <span style="display: flex; align-items: center;">
+      <span class="id-value">${data.id || ''}</span>
+      ${data.id ? `<button class="copy-id-btn" onclick="handleIdCopy(event, '${data.id}')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>` : ''}
+    </span>
+  </p>`;
 
   // Get all keys except internal ones and those containing 'დისკუსია'
   const keys = Object.keys(data).filter(
