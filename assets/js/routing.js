@@ -115,7 +115,6 @@ function navigateToItemById(id) {
   if (searchInput) {
     searchInput.value = id;
 
-    // Trigger input event to activate any search-related logic
     const inputEvent = new Event('input', { bubbles: true });
     searchInput.dispatchEvent(inputEvent);
 
@@ -125,7 +124,12 @@ function navigateToItemById(id) {
       clearSearchBtn.style.display = 'block';
     }
 
-    console.log(`Set search input value to: ${id}`);
+    // Add a small delay and try applying filters directly
+    setTimeout(() => {
+      if (typeof applyFilters === 'function') {
+        applyFilters();
+      }
+    }, 100);
   }
 
   // Find the corresponding card and highlight it
