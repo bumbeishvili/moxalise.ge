@@ -376,6 +376,11 @@ function setupMarkers() {
 
         highlightPolygon(map, index);
 
+        // Update URL parameter with the item's ID
+        if (item.id) {
+          updateUrlParam('id', item.id);
+        }
+
         // Get the container's position first
         const containerRect = this.parentNode.getBoundingClientRect();
         const pinRect = this.getBoundingClientRect();
@@ -570,12 +575,22 @@ function addMapEventHandlers() {
 
           // Create tooltip after highlighting
           createTooltipForFeature(feature, id, e.point);
+
+          // Update URL parameter with the feature's ID
+          if (feature.properties.id) {
+            updateUrlParam('id', feature.properties.id);
+          }
         }, 200);
       } else {
         highlightPolygon(map, id);
 
         // Create tooltip after highlighting
         createTooltipForFeature(feature, id, e.point);
+
+        // Update URL parameter with the feature's ID
+        if (feature.properties.id) {
+          updateUrlParam('id', feature.properties.id);
+        }
 
         // Show toast notification when pin is opened (limited to once per 20 clicks)
         showVictimAssistanceToast();
@@ -751,6 +766,25 @@ function addMapEventHandlers() {
           instance.hide();
         }
       });
+
+      // Clear URL parameter when clicking elsewhere on the map
+      clearUrlParam('id');
+
+      // Clear the search input when clicking elsewhere on the map
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput && searchInput.value) {
+        searchInput.value = '';
+
+        // Trigger input event to refresh the search results
+        const inputEvent = new Event('input', { bubbles: true });
+        searchInput.dispatchEvent(inputEvent);
+
+        // Hide the clear search button if it exists
+        const clearSearchBtn = document.getElementById('clearSearch');
+        if (clearSearchBtn) {
+          clearSearchBtn.style.display = 'none';
+        }
+      }
     }
   });
 }

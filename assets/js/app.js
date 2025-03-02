@@ -531,6 +531,11 @@ function createSidebarCards() {
         // This ensures the card and pin are highlighted immediately
         simpleHighlightPolygon(map, index);
 
+        // Update URL parameter with the item's ID
+        if (item.id) {
+          updateUrlParam('id', item.id);
+        }
+
         // Use the MAX_ZOOM_LEVEL constant from map.js
         // Default zoom level is 12, but never exceed the maximum
         const zoomLevel = Math.min(12, MAX_ZOOM_LEVEL);
