@@ -2839,3 +2839,70 @@ a:hover {
     padding: 10px 12px;
   }
 }
+
+/* Municipality Contact Button */
+.municipality-contact-button {
+  position: absolute;
+  top: 110px;
+  left: 10px;
+  z-index: 10;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.municipality-contact-button:hover {
+  background-color: #2ecc71;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Municipality Modal Styles */
+.municipality-modal-content {
+  width: 90%;
+  max-width: 500px;
+}
+
+.municipality-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.municipality-contact-item {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.municipality-contact-item h3 {
+  color: #3498db;
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.municipality-contact-item p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Mobile optimizations for the buttons */
+@media (max-width: 768px) {
+  .municipality-contact-button {
+    top: 90px;
+    left: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
+    width: auto;
+  }
+}

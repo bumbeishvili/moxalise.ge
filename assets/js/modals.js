@@ -612,3 +612,44 @@ window.addEventListener('click', function (event) {
     closePhoneInputModal();
   }
 });
+
+// Functions for municipality contact modal
+function openMunicipalityModal() {
+  const modal = document.getElementById('municipality-modal');
+  const mobileSidebarButton = document.querySelector('.mobile-sidebar-button');
+
+  // Hide the mobile sidebar button
+  if (mobileSidebarButton) {
+    mobileSidebarButton.style.display = 'none';
+  }
+
+  modal.style.display = 'block';
+
+  // Add a small delay before adding the active class for animation
+  setTimeout(() => {
+    modal.classList.add('active');
+  }, 10);
+
+  // Prevent scrolling of the background content
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMunicipalityModal() {
+  const modal = document.getElementById('municipality-modal');
+  const mobileSidebarButton = document.querySelector('.mobile-sidebar-button');
+
+  modal.classList.remove('active');
+
+  // Add a small delay before hiding the modal to allow for animation
+  setTimeout(() => {
+    modal.style.display = 'none';
+
+    // Show the mobile sidebar button again if it exists
+    if (mobileSidebarButton && window.innerWidth <= 768) {
+      mobileSidebarButton.style.display = 'block';
+    }
+  }, 300);
+
+  // Re-enable scrolling of the background content
+  document.body.style.overflow = '';
+}

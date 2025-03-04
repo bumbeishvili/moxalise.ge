@@ -78,7 +78,8 @@
   <!-- Help Offer Button -->
   <button class="help-offer-button" onclick="openHelpOfferModal()">დახმარების შეთავაზება</button>
 
-
+  <!-- Municipality Contact Button -->
+  <button class="municipality-contact-button" onclick="openMunicipalityModal()">დაუკავშირდით გამგეობას</button>
 
   <!-- Instructions Button -->
   <button class="instructions-button" onclick="openInstructionsModal()">ინსტრუქცია</button>
@@ -499,6 +500,32 @@
             </div>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Municipality Contact Modal -->
+  <div id="municipality-modal" class="modal">
+    <div class="modal-content municipality-modal-content">
+      <div class="modal-header">
+        <h2>გამგეობების ცხელ ხაზები</h2>
+        <span class="modal-close" onclick="closeMunicipalityModal()">&times;</span>
+      </div>
+      <div class="modal-body municipality-modal-body">
+        <div class="municipality-contacts">
+          <div class="municipality-contact-item">
+            <h3>☎️ ლანჩხუთი</h3>
+            <p>577 39 83 22; 599 05 87 00</p>
+          </div>
+          <div class="municipality-contact-item">
+            <h3>☎️ ოზურგეთი</h3>
+            <p>577 60 13 04; 595 80 10 21; 595 80 10 06</p>
+          </div>
+          <div class="municipality-contact-item">
+            <h3>☎️ ჩოხატაური</h3>
+            <p>599 226 423; 599 222 609</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
